@@ -64,6 +64,10 @@ public class FirebaseService
                 var clientEmail = doc.RootElement.GetProperty("client_email").GetString()!;
                 var privateKey  = doc.RootElement.GetProperty("private_key").GetString()!;
 
+                // Always use project_id from the JSON — guards against Railway misconfiguration
+                if (doc.RootElement.TryGetProperty("project_id", out var pidEl))
+                    projectId = pidEl.GetString()!;
+
                 // Corrige \n literal (dois chars) para newline real
                 if (!privateKey.Contains('\n'))
                     privateKey = privateKey.Replace("\\n", "\n");
