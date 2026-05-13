@@ -8,8 +8,18 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+var connStr = Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? builder.Configuration.GetConnectionString("Default")!;
+
+// Railway fornece DATABASE_URL no formato postgresql://user:pass@host:port/db
+if (connStr.StartsWith("postgresql://") || connStr.StartsWith("postgres://"))
+{
+    var uri = new Uri(connStr);
+    var userInfo = uri.UserInfo.Split(':');
+    connStr = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+}
+
+builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connStr));
 
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<FirebaseService>();
