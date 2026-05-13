@@ -24,8 +24,12 @@ public class FirebaseService
                 _auth = FirebaseAuth.DefaultInstance;
                 return;
             }
-            var serviceAccountKey = _cfg["Firebase:ServiceAccountKey"] ?? "";
-            var projectId = _cfg["Firebase:ProjectId"] ?? "";
+            var serviceAccountKey = _cfg["Firebase:ServiceAccountKey"]
+                ?? Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_KEY")
+                ?? "";
+            var projectId = _cfg["Firebase:ProjectId"]
+                ?? Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID")
+                ?? "";
 
             if (string.IsNullOrWhiteSpace(projectId)) return;
 
