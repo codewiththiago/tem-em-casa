@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
@@ -27,6 +28,7 @@ public class FirebaseService
                 _auth = FirebaseAuth.DefaultInstance;
                 return;
             }
+
             var serviceAccountKey = _cfg["Firebase:ServiceAccountKey"]
                 ?? Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_KEY")
                 ?? "";
@@ -36,12 +38,30 @@ public class FirebaseService
 
             if (string.IsNullOrWhiteSpace(projectId)) return;
 
-            // Algumas plataformas (Railway) double-escapam \n em env vars
-            serviceAccountKey = serviceAccountKey.Replace("\\n", "\n");
+            GoogleCredential credential;
+            if (string.IsNullOrWhiteSpace(serviceAccountKey))
+            {
+                credential = GoogleCredential.GetApplicationDefault();
+            }
+            else
+            {
+                // Parseia o JSON primeiro para extrair a private_key como string .NET
+                // (o JsonDocument resolve os escape sequences do JSON corretamente)
+                using var doc = JsonDocument.Parse(serviceAccountKey);
+                var clientEmail = doc.RootElement.GetProperty("client_email").GetString()!;
+                var privateKey  = doc.RootElement.GetProperty("private_key").GetString()!;
 
-            var credential = string.IsNullOrWhiteSpace(serviceAccountKey)
-                ? GoogleCredential.GetApplicationDefault()
-                : GoogleCredential.FromJson(serviceAccountKey);
+                // Algumas plataformas (Railway) double-escapam \n → o GetString() retorna
+                // "\n" como dois chars (barra + n). Corrige para newline real.
+                if (!privateKey.Contains('\n'))
+                    privateKey = privateKey.Replace("\\n", "\n");
+
+                var saCred = new ServiceAccountCredential(
+                    new ServiceAccountCredential.Initializer(clientEmail)
+                        .FromPrivateKey(privateKey));
+
+                credential = GoogleCredential.FromServiceAccountCredential(saCred);
+            }
 
             FirebaseApp.Create(new AppOptions { Credential = credential, ProjectId = projectId });
             _auth = FirebaseAuth.DefaultInstance;
