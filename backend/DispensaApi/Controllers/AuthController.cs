@@ -23,6 +23,7 @@ public class AuthController(AppDbContext db, FirebaseService firebase, IConfigur
         firebase_key_cfg        = !string.IsNullOrEmpty(cfg["Firebase:ServiceAccountKey"]),
         firebase_project_env    = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID")),
         firebase_key_env        = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_KEY")),
+        firebase_init_error     = firebase.InitError,
     });
 
     [HttpPost("login")]

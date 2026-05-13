@@ -8,12 +8,15 @@ public class FirebaseService
 {
     private readonly IConfiguration _cfg;
     private FirebaseAuth? _auth;
+    private string? _initError;
 
     public FirebaseService(IConfiguration cfg)
     {
         _cfg = cfg;
         TryInitialize();
     }
+
+    public string? InitError => _initError;
 
     private void TryInitialize()
     {
@@ -42,6 +45,7 @@ public class FirebaseService
         }
         catch (Exception ex)
         {
+            _initError = ex.Message;
             Console.WriteLine($"[FirebaseService] Init skipped: {ex.Message}");
         }
     }
