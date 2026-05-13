@@ -45,16 +45,19 @@ public class FirebaseService
             }
             else
             {
-                // Parseia o JSON primeiro para extrair a private_key como string .NET
-                // (o JsonDocument resolve os escape sequences do JSON corretamente)
-                using var doc = JsonDocument.Parse(serviceAccountKey);
+                // Railway converte \n do JSON em newlines reais ao salvar a env var,
+                // quebrando o JSON. Reescapamos antes de parsear.
+                var safeJson = serviceAccountKey
+                    .Replace("\r\n", "\\n")
+                    .Replace("\r",   "\\n")
+                    .Replace("\n",   "\\n");
+
+                using var doc = JsonDocument.Parse(safeJson);
                 var clientEmail = doc.RootElement.GetProperty("client_email").GetString()!;
                 var privateKey  = doc.RootElement.GetProperty("private_key").GetString()!;
 
-                // Algumas plataformas (Railway) double-escapam \n → o GetString() retorna
-                // "\n" como dois chars (barra + n). Corrige para newline real.
-                if (!privateKey.Contains('\n'))
-                    privateKey = privateKey.Replace("\\n", "\n");
+                // Após parsear, private_key pode ter \n como dois chars — converte para newline real
+                privateKey = privateKey.Replace("\\n", "\n");
 
                 var saCred = new ServiceAccountCredential(
                     new ServiceAccountCredential.Initializer(clientEmail)
