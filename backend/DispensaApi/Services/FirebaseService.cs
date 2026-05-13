@@ -55,7 +55,9 @@ public class FirebaseService
                 }
                 catch
                 {
-                    jsonKey = serviceAccountKey;
+                    // Not base64 — use raw JSON, but escape literal newlines inside string values
+                    // (Railway converts \n escape sequences in JSON strings to real 0x0A bytes)
+                    jsonKey = FixLiteralNewlinesInJsonStrings(serviceAccountKey);
                 }
 
                 using var doc = JsonDocument.Parse(jsonKey);
@@ -81,6 +83,29 @@ public class FirebaseService
             _initError = ex.Message;
             Console.WriteLine($"[FirebaseService] Init skipped: {ex.Message}");
         }
+    }
+
+    // Scans JSON character-by-character and escapes literal 0x0A/0x0D inside string values.
+    // Structural newlines (between keys) are left intact; only those inside quoted strings are fixed.
+    private static string FixLiteralNewlinesInJsonStrings(string json)
+    {
+        var sb = new System.Text.StringBuilder(json.Length);
+        bool inString = false;
+        for (int i = 0; i < json.Length; i++)
+        {
+            char c = json[i];
+            if (c == '\\' && inString)
+            {
+                sb.Append(c);
+                if (i + 1 < json.Length) sb.Append(json[++i]);
+                continue;
+            }
+            if (c == '"') { inString = !inString; sb.Append(c); continue; }
+            if (inString && c == '\n') { sb.Append("\\n"); continue; }
+            if (inString && c == '\r') continue;
+            sb.Append(c);
+        }
+        return sb.ToString();
     }
 
     public async Task<FirebaseToken> VerifyTokenAsync(string idToken)
