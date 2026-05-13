@@ -20,16 +20,37 @@ public class AuthController(AppDbContext db, FirebaseService firebase, IConfigur
     public IActionResult Health([FromServices] IConfiguration cfg)
     {
         var key = cfg["Firebase:ServiceAccountKey"] ?? "";
+
+        string? pkFirstLine = null;
+        string? pkParseError = null;
+        try
+        {
+            string jsonKey;
+            try
+            {
+                var cleanB64 = key.Replace("\n", "").Replace("\r", "").Replace(" ", "");
+                jsonKey = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(cleanB64));
+            }
+            catch
+            {
+                jsonKey = FirebaseService.FixLiteralNewlinesInJsonStrings(key);
+            }
+            using var doc = System.Text.Json.JsonDocument.Parse(jsonKey);
+            var pk = doc.RootElement.GetProperty("private_key").GetString() ?? "";
+            if (!pk.Contains('\n')) pk = pk.Replace("\\n", "\n");
+            pkFirstLine = pk.Split('\n')[0];
+        }
+        catch (Exception ex) { pkParseError = ex.Message; }
+
         return Ok(new
         {
             firebase_project_cfg    = !string.IsNullOrEmpty(cfg["Firebase:ProjectId"]),
             firebase_key_cfg        = !string.IsNullOrEmpty(key),
             firebase_key_length     = key.Length,
             firebase_key_has_lf     = key.Contains('\n'),
-            firebase_key_starts     = key.Length > 10 ? key[..10] : key,
             firebase_key_looks_b64  = !key.TrimStart().StartsWith("{"),
-            firebase_project_env    = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID")),
-            firebase_key_env        = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_KEY")),
+            firebase_pk_first_line  = pkFirstLine,
+            firebase_pk_parse_error = pkParseError,
             firebase_init_error     = firebase.InitError,
         });
     }

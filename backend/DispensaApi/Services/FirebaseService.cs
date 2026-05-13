@@ -87,7 +87,7 @@ public class FirebaseService
 
     // Scans JSON character-by-character and escapes literal 0x0A/0x0D inside string values.
     // Structural newlines (between keys) are left intact; only those inside quoted strings are fixed.
-    private static string FixLiteralNewlinesInJsonStrings(string json)
+    internal static string FixLiteralNewlinesInJsonStrings(string json)
     {
         var sb = new System.Text.StringBuilder(json.Length);
         bool inString = false;
