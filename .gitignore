@@ -1,0 +1,17 @@
+# Credenciais — nunca commitar
+.env
+backend/.env
+frontend/.env
+*.env.local
+serviceAccountKey.json
+google-services.json
+
+# Build outputs
+frontend/dist/
+frontend/node_modules/
+frontend/android/
+backend/DispensaApi/bin/
+backend/DispensaApi/obj/
+
+# Docker
+backend/DispensaApi/Migrations/
