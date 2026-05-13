@@ -16,6 +16,15 @@ namespace DispensaApi.Controllers;
 [Route("api/auth")]
 public class AuthController(AppDbContext db, FirebaseService firebase, IConfiguration cfg) : ControllerBase
 {
+    [HttpGet("health")]
+    public IActionResult Health([FromServices] IConfiguration cfg) => Ok(new
+    {
+        firebase_project_cfg    = !string.IsNullOrEmpty(cfg["Firebase:ProjectId"]),
+        firebase_key_cfg        = !string.IsNullOrEmpty(cfg["Firebase:ServiceAccountKey"]),
+        firebase_project_env    = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID")),
+        firebase_key_env        = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_KEY")),
+    });
+
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest req)
     {
