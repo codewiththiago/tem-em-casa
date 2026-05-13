@@ -68,6 +68,9 @@ public class FirebaseService
                 if (!privateKey.Contains('\n'))
                     privateKey = privateKey.Replace("\\n", "\n");
 
+                // Normaliza o PEM caso Railway tenha quebrado o header/footer no meio
+                privateKey = NormalizePemKey(privateKey);
+
                 var saCred = new ServiceAccountCredential(
                     new ServiceAccountCredential.Initializer(clientEmail)
                         .FromPrivateKey(privateKey));
@@ -83,6 +86,26 @@ public class FirebaseService
             _initError = ex.Message;
             Console.WriteLine($"[FirebaseService] Init skipped: {ex.Message}");
         }
+    }
+
+    // Strips all whitespace, finds PEM markers, extracts base64 content and re-wraps at 64 chars.
+    // Handles any line-break corruption Railway may introduce in the key value.
+    private static string NormalizePemKey(string key)
+    {
+        var flat = System.Text.RegularExpressions.Regex.Replace(key, @"\s+", "");
+        const string begin = "-----BEGINPRIVATEKEY-----";
+        const string end   = "-----ENDPRIVATEKEY-----";
+        var beginIdx = flat.IndexOf(begin, StringComparison.Ordinal);
+        var endIdx   = flat.IndexOf(end,   StringComparison.Ordinal);
+        if (beginIdx < 0 || endIdx < 0) return key;
+
+        var b64 = flat[(beginIdx + begin.Length)..endIdx];
+        var sb  = new System.Text.StringBuilder();
+        sb.AppendLine("-----BEGIN PRIVATE KEY-----");
+        for (int i = 0; i < b64.Length; i += 64)
+            sb.AppendLine(b64.Substring(i, Math.Min(64, b64.Length - i)));
+        sb.Append("-----END PRIVATE KEY-----");
+        return sb.ToString();
     }
 
     // Scans JSON character-by-character and escapes literal 0x0A/0x0D inside string values.
