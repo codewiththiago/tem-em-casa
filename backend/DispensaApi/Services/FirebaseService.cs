@@ -36,6 +36,9 @@ public class FirebaseService
 
             if (string.IsNullOrWhiteSpace(projectId)) return;
 
+            // Algumas plataformas (Railway) double-escapam \n em env vars
+            serviceAccountKey = serviceAccountKey.Replace("\\n", "\n");
+
             var credential = string.IsNullOrWhiteSpace(serviceAccountKey)
                 ? GoogleCredential.GetApplicationDefault()
                 : GoogleCredential.FromJson(serviceAccountKey);
