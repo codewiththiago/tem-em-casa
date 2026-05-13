@@ -17,14 +17,22 @@ namespace DispensaApi.Controllers;
 public class AuthController(AppDbContext db, FirebaseService firebase, IConfiguration cfg) : ControllerBase
 {
     [HttpGet("health")]
-    public IActionResult Health([FromServices] IConfiguration cfg) => Ok(new
+    public IActionResult Health([FromServices] IConfiguration cfg)
     {
-        firebase_project_cfg    = !string.IsNullOrEmpty(cfg["Firebase:ProjectId"]),
-        firebase_key_cfg        = !string.IsNullOrEmpty(cfg["Firebase:ServiceAccountKey"]),
-        firebase_project_env    = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID")),
-        firebase_key_env        = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_KEY")),
-        firebase_init_error     = firebase.InitError,
-    });
+        var key = cfg["Firebase:ServiceAccountKey"] ?? "";
+        return Ok(new
+        {
+            firebase_project_cfg    = !string.IsNullOrEmpty(cfg["Firebase:ProjectId"]),
+            firebase_key_cfg        = !string.IsNullOrEmpty(key),
+            firebase_key_length     = key.Length,
+            firebase_key_has_lf     = key.Contains('\n'),
+            firebase_key_starts     = key.Length > 10 ? key[..10] : key,
+            firebase_key_looks_b64  = !key.TrimStart().StartsWith("{"),
+            firebase_project_env    = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID")),
+            firebase_key_env        = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_KEY")),
+            firebase_init_error     = firebase.InitError,
+        });
+    }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest req)

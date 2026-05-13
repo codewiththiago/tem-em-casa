@@ -49,7 +49,9 @@ public class FirebaseService
                 string jsonKey;
                 try
                 {
-                    jsonKey = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(serviceAccountKey));
+                    // Strip whitespace Railway may insert into long env vars (line breaks every ~76 chars)
+                    var cleanB64 = serviceAccountKey.Replace("\n", "").Replace("\r", "").Replace(" ", "");
+                    jsonKey = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(cleanB64));
                 }
                 catch
                 {
