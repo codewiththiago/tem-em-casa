@@ -8,15 +8,35 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connStr = Environment.GetEnvironmentVariable("DATABASE_URL")
-    ?? builder.Configuration.GetConnectionString("Default")!;
+string connStr;
 
-// Railway fornece DATABASE_URL no formato postgresql://user:pass@host:port/db
-if (connStr.StartsWith("postgresql://") || connStr.StartsWith("postgres://"))
+// Railway injeta PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD individualmente
+var pgHost = Environment.GetEnvironmentVariable("PGHOST");
+var pgPort = Environment.GetEnvironmentVariable("PGPORT") ?? "5432";
+var pgDb   = Environment.GetEnvironmentVariable("PGDATABASE");
+var pgUser = Environment.GetEnvironmentVariable("PGUSER");
+var pgPass = Environment.GetEnvironmentVariable("PGPASSWORD");
+
+if (pgHost != null && pgDb != null && pgUser != null && pgPass != null)
 {
-    var uri = new Uri(connStr);
-    var userInfo = uri.UserInfo.Split(':');
-    connStr = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    connStr = $"Host={pgHost};Port={pgPort};Database={pgDb};Username={pgUser};Password={pgPass};SSL Mode=Require;Trust Server Certificate=true";
+}
+else
+{
+    // Fallback: DATABASE_URL ou appsettings
+    var rawUrl = Environment.GetEnvironmentVariable("DATABASE_URL")
+        ?? builder.Configuration.GetConnectionString("Default")!;
+
+    if (rawUrl.StartsWith("postgresql://") || rawUrl.StartsWith("postgres://"))
+    {
+        var uri      = new Uri(rawUrl);
+        var userInfo = uri.UserInfo.Split(':');
+        connStr = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={Uri.UnescapeDataString(userInfo[1])};SSL Mode=Require;Trust Server Certificate=true";
+    }
+    else
+    {
+        connStr = rawUrl;
+    }
 }
 
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connStr));
