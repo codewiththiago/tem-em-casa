@@ -29,7 +29,7 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
 
   useEffect(() => {
     if (tab === 'activity' && activity.length === 0) {
-      getFamilyActivity(family.id).then((d) => setActivity(d.logs || [])).catch(() => {});
+      getFamilyActivity(family.id).then((d) => setActivity(d.logs || [])).catch((err) => console.error('Failed to load activity:', err));
     }
   }, [tab]);
 
@@ -41,7 +41,9 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
       onFamilyUpdate(group);
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
-    } catch {}
+    } catch (err) {
+      console.error('Save settings failed:', err);
+    }
   };
 
   const handleLeave = async () => {
@@ -49,10 +51,12 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
     try {
       await leaveFamily(family.id);
       onLogout();
-    } catch {}
+    } catch (err) {
+      console.error('Leave family failed:', err);
+    }
   };
 
-  const inviteMsg = buildInviteMsg(family.inviteCode, family.pin, family.name);
+  const inviteMsg = buildInviteMsg(family.inviteCode, family.name);
 
   return (
     <div className="dp-screen">
@@ -71,7 +75,7 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
             </div>
             <div>
               <div className="code-share-lbl">PIN</div>
-              <div className="code-share-val">{family.pin}</div>
+              <div className="code-share-val">••••</div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>

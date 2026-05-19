@@ -13,7 +13,6 @@ export const useStore = create(
       family: null,
       products: [],
       syncing: false,
-      lastSync: null,
 
       setAuth: (user, jwt, familyGroupId) => {
         localStorage.setItem('dispensa_jwt', jwt);
@@ -41,13 +40,11 @@ export const useStore = create(
         set((s) => ({ products: s.products.filter((p) => p.id !== id) })),
 
       setSyncing: (v) => set({ syncing: v }),
-      setLastSync: () => set({ lastSync: new Date().toISOString() }),
     }),
     {
       name: 'dispensa-store',
       partialize: (s) => ({
         user: s.user,
-        jwt: s.jwt,
         familyGroupId: s.familyGroupId,
         family: s.family,
         products: s.products,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useStore } from './store/useStore';
 import { getFamily, getProducts, createProduct, updateProduct, deleteProduct } from './services/api';
 import { initNotifications } from './services/notifications';
@@ -38,7 +38,9 @@ export default function App() {
           setFamily(group);
           setProducts(prods);
           await initNotifications();
-        } catch {}
+        } catch (err) {
+          console.error('Initial load failed:', err);
+        }
       }
       setLoaded(true);
     })();
@@ -56,7 +58,9 @@ export default function App() {
         ]);
         setFamily(group);
         setProducts(prods);
-      } catch {}
+      } catch (err) {
+        console.error('Sync failed:', err);
+      }
     };
     const interval = setInterval(sync, 60000);
     document.addEventListener('visibilitychange', sync);
@@ -73,7 +77,9 @@ export default function App() {
       ]);
       setFamily(group);
       setProducts(prods);
-    } catch {}
+    } catch (err) {
+      console.error('Manual sync failed:', err);
+    }
     setTimeout(() => setSyncing(false), 700);
   }, [familyGroupId]);
 
@@ -97,7 +103,9 @@ export default function App() {
     try {
       await deleteProduct(familyGroupId, id);
       removeProduct(id);
-    } catch {}
+    } catch (err) {
+      console.error('Delete product failed:', err);
+    }
     setDeleteConfirm(null);
   };
 
@@ -120,8 +128,11 @@ export default function App() {
     return <LoginScreen />;
   }
 
-  const allAlerts = products.flatMap((p) => getAlerts(p).map((a) => ({ ...a, product: p })));
-  const shopList = buildShoppingList(products);
+  const allAlerts = useMemo(
+    () => products.flatMap((p) => getAlerts(p).map((a) => ({ ...a, product: p }))),
+    [products]
+  );
+  const shopList = useMemo(() => buildShoppingList(products), [products]);
 
   return (
     <>
@@ -131,8 +142,6 @@ export default function App() {
           user={user}
           products={products}
           onEdit={handleEdit}
-          onSync={handleSync}
-          syncing={syncing}
         />
       )}
       {screen === 'stock' && (

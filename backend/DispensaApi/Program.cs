@@ -42,7 +42,7 @@ else
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connStr));
 
 builder.Services.AddHttpClient();
-builder.Services.AddSingleton<FirebaseService>();
+builder.Services.AddSingleton<IFirebaseService, FirebaseService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ProductAlertService>();
 builder.Services.AddHostedService<DailyAlertJob>();
@@ -72,7 +72,7 @@ builder.Services.AddControllers().AddJsonOptions(o =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Dispensa API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Tem em Casa API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
@@ -114,3 +114,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }

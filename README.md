@@ -1,4 +1,4 @@
-# 🌿 Minha Dispensa
+# Tem em Casa
 
 Controle de estoque doméstico com compartilhamento familiar em tempo real.
 
@@ -41,10 +41,10 @@ dotnet run
 ## ▶️ Fase 2 — Firebase (faça antes do frontend)
 
 1. Acesse https://console.firebase.google.com
-2. Criar projeto → **Minha Dispensa**
+2. Criar projeto → **Tem em Casa**
 3. Authentication → Google → Habilitar
 4. Project Settings → General → Adicionar app Android
-   - Package: `com.minhadispensa.app`
+   - Package: `com.querencialabs.temencasa`
    - Baixar `google-services.json`
 5. Project Settings → Service Accounts → Gerar chave privada
    - Salvar como `serviceAccountKey.json`
@@ -80,7 +80,7 @@ cd frontend
 npm run build
 
 # 2. Inicializar Capacitor (só na primeira vez)
-npx cap init "Minha Dispensa" com.minhadispensa.app --web-dir dist
+npx cap init "Tem em Casa" com.querencialabs.temencasa --web-dir dist
 
 # 3. Adicionar plataforma Android (só na primeira vez)
 npx cap add android
@@ -114,7 +114,7 @@ npm run cap:android
 ## ▶️ Fase 6 — Publicar na Play Store
 
 1. Criar conta em https://play.google.com/console (US$ 25 — única vez)
-2. Criar → Novo app → "Minha Dispensa" → Categoria: Casa e moradia
+2. Criar → Novo app → "Tem em Casa" → Categoria: Casa e moradia
 3. Configurar ficha: descrição, screenshots, feature graphic
 4. Política de privacidade (obrigatória) — criar página no GitHub Pages ou Notion
 5. Upload do AAB assinado
@@ -145,18 +145,18 @@ npm run cap:android
 ### backend/.env
 ```
 DB_PASSWORD=senha_segura
-FIREBASE_PROJECT_ID=minha-dispensa-xxxxx
+FIREBASE_PROJECT_ID=temencasa-xxxxx
 FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
 JWT_SECRET=chave_longa_aqui_32_chars_minimo
-FRONTEND_URL=https://app.minhadispensa.com
+FRONTEND_URL=https://app.temencasa.com
 ```
 
 ### frontend/.env
 ```
 VITE_API_URL=http://localhost:5000
 VITE_FIREBASE_API_KEY=xxxxx
-VITE_FIREBASE_AUTH_DOMAIN=minha-dispensa-xxxxx.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=minha-dispensa-xxxxx
+VITE_FIREBASE_AUTH_DOMAIN=temencasa-xxxxx.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=temencasa-xxxxx
 VITE_FIREBASE_MESSAGING_SENDER_ID=xxxxx
 VITE_FIREBASE_APP_ID=xxxxx
 VITE_FIREBASE_VAPID_KEY=xxxxx

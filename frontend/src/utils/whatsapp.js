@@ -42,8 +42,8 @@ export function buildShoppingMsg(list, familyName) {
   return msg.trim();
 }
 
-export function buildInviteMsg(code, pin, familyName) {
-  return `🏡 *Convite — Tem em Casa (${familyName || 'Família'})*\n\nOlá! Te convido para gerenciarmos o estoque da casa juntos.\n\n📱 *Abra o app e use:*\n• Código: *${code}*\n• PIN: *${pin}*\n\nVamos manter tudo sempre abastecido! 🏡`;
+export function buildInviteMsg(code, familyName) {
+  return `🏡 *Convite — Tem em Casa (${familyName || 'Família'})*\n\nOlá! Te convido para gerenciarmos o estoque da casa juntos.\n\n📱 *Abra o app e use:*\n• Código: *${code}*\n• PIN: o que combinamos pessoalmente\n\nVamos manter tudo sempre abastecido! 🏡`;
 }
 
 export function openWhatsApp(msg, phone) {

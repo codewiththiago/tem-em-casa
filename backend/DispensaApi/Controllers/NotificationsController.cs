@@ -19,7 +19,7 @@ public class NotificationsController(ProductAlertService alertService, AppDbCont
         var isMember = await db.FamilyMembers.AnyAsync(m => m.FamilyGroupId == familyId && m.UserId == userId);
         if (!isMember) return Forbid();
 
-        await alertService.SendDailyAlertsAsync();
+        await alertService.SendAlertsForGroupAsync(familyId);
         return Ok(new { message = "Alertas enviados." });
     }
 

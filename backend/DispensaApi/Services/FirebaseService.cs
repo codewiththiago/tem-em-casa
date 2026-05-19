@@ -5,7 +5,7 @@ using Google.Apis.Auth.OAuth2;
 
 namespace DispensaApi.Services;
 
-public class FirebaseService
+public class FirebaseService : IFirebaseService
 {
     private readonly IConfiguration _cfg;
     private FirebaseAuth? _auth;
@@ -135,10 +135,11 @@ public class FirebaseService
         return sb.ToString();
     }
 
-    public async Task<FirebaseToken> VerifyTokenAsync(string idToken)
+    public async Task<FirebaseTokenData> VerifyTokenAsync(string idToken)
     {
         if (_auth == null)
             throw new InvalidOperationException("Firebase não configurado. Defina Firebase:ProjectId e Firebase:ServiceAccountKey.");
-        return await _auth.VerifyIdTokenAsync(idToken);
+        var token = await _auth.VerifyIdTokenAsync(idToken);
+        return new FirebaseTokenData(token.Uid, token.Claims);
     }
 }

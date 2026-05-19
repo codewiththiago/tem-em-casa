@@ -26,7 +26,11 @@ public class DailyAlertJob(IServiceProvider services, ILogger<DailyAlertJob> log
 
     private static TimeSpan GetDelayUntil8Am()
     {
-        var now = DateTime.Now;
+        var tzId = OperatingSystem.IsWindows()
+            ? "E. South America Standard Time"
+            : "America/Sao_Paulo";
+        var tz   = TimeZoneInfo.FindSystemTimeZoneById(tzId);
+        var now  = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
         var next = now.Date.AddHours(8);
         if (now >= next) next = next.AddDays(1);
         return next - now;

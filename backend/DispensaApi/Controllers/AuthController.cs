@@ -14,7 +14,7 @@ namespace DispensaApi.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(AppDbContext db, FirebaseService firebase, IConfiguration cfg) : ControllerBase
+public class AuthController(AppDbContext db, IFirebaseService firebase, IConfiguration cfg) : ControllerBase
 {
     [HttpGet("health")]
     public IActionResult Health()
@@ -74,7 +74,7 @@ public class AuthController(AppDbContext db, FirebaseService firebase, IConfigur
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(cfg["Jwt:Secret"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expiry = DateTime.UtcNow.AddHours(double.Parse(cfg["Jwt:ExpiryHours"] ?? "720"));
+        var expiry = DateTime.UtcNow.AddHours(double.TryParse(cfg["Jwt:ExpiryHours"], out var h) ? h : 24);
 
         var claims = new[]
         {

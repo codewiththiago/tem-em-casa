@@ -13,7 +13,7 @@ public class BarcodeController(IHttpClientFactory http) : ControllerBase
     public async Task<IActionResult> Lookup(string code)
     {
         var client = http.CreateClient();
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("MinhaDIspensa/1.0");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("TemEmCasa/1.0");
 
         var url = $"https://world.openfoodfacts.org/api/v2/product/{code}.json?fields=product_name,product_name_pt,categories_tags";
         var response = await client.GetAsync(url);

@@ -63,6 +63,8 @@ public class ProductsController(AppDbContext db) : ControllerBase
     public async Task<IActionResult> Create(Guid familyId, [FromBody] SaveProductRequest req)
     {
         if (!await IsMember(familyId)) return Forbid();
+        if (req.MinQuantity > req.MaxQuantity)
+            return BadRequest(new { message = "Quantidade mínima não pode ser maior que a máxima." });
 
         var product = new Product
         {
@@ -90,6 +92,8 @@ public class ProductsController(AppDbContext db) : ControllerBase
     public async Task<IActionResult> Update(Guid familyId, Guid id, [FromBody] SaveProductRequest req)
     {
         if (!await IsMember(familyId)) return Forbid();
+        if (req.MinQuantity > req.MaxQuantity)
+            return BadRequest(new { message = "Quantidade mínima não pode ser maior que a máxima." });
 
         var product = await db.Products.FirstOrDefaultAsync(p => p.Id == id && p.FamilyGroupId == familyId);
         if (product == null) return NotFound();

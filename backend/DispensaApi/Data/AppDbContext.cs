@@ -1,5 +1,7 @@
+using System.Text.Json;
 using DispensaApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DispensaApi.Data;
 
@@ -10,6 +12,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
+
+    private static JsonDocument ParseJson(string s) => JsonDocument.Parse(s);
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -35,5 +39,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         b.Entity<ActivityLog>()
             .HasOne(a => a.FamilyGroup).WithMany(g => g.ActivityLogs)
             .HasForeignKey(a => a.FamilyGroupId).OnDelete(DeleteBehavior.Cascade);
+
+        // Value converter lets InMemory (tests) and Npgsql store JsonDocument as a string/jsonb column.
+        // JsonDocument.Parse has optional params, so we wrap it to satisfy expression-tree constraints.
+        var jsonConverter = new ValueConverter<JsonDocument, string>(
+            v => v.RootElement.GetRawText(),
+            v => ParseJson(v));
+        b.Entity<ActivityLog>().Property(a => a.Details).HasConversion(jsonConverter);
     }
 }

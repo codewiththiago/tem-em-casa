@@ -1,12 +1,10 @@
 import axios from 'axios';
 import { getIdToken } from './firebase';
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
-  timeout: 15000,
-});
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-// Attach JWT from our backend (not Firebase token directly)
+const api = axios.create({ baseURL: BASE_URL, timeout: 15000 });
+
 api.interceptors.request.use(async (config) => {
   const token = localStorage.getItem('dispensa_jwt');
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -16,9 +14,20 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (r) => r,
   async (err) => {
-    // Não recarrega na tela de login — deixa o catch mostrar o erro
     const isLoginEndpoint = err.config?.url?.includes('/auth/login');
-    if (err.response?.status === 401 && !isLoginEndpoint) {
+    if (err.response?.status === 401 && !isLoginEndpoint && !err.config?._retry) {
+      err.config._retry = true;
+      try {
+        const idToken = await getIdToken();
+        if (idToken) {
+          const { data } = await axios.post(`${BASE_URL}/api/auth/login`, { idToken });
+          localStorage.setItem('dispensa_jwt', data.token);
+          err.config.headers = { ...err.config.headers, Authorization: `Bearer ${data.token}` };
+          return api(err.config);
+        }
+      } catch (refreshErr) {
+        console.error('Token refresh failed:', refreshErr);
+      }
       localStorage.removeItem('dispensa_jwt');
       window.location.reload();
     }
@@ -58,7 +67,7 @@ export const leaveFamily = (id) =>
 export const getProducts = (familyId) =>
   api.get(`/api/family/${familyId}/products`).then((r) => r.data.products);
 
-export const getAlerts = (familyId) =>
+export const fetchServerAlerts = (familyId) =>
   api.get(`/api/family/${familyId}/products/alerts`).then((r) => r.data.products);
 
 export const getShoppingList = (familyId) =>

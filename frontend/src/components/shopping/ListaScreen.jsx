@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { buildShoppingList } from '../../utils/alerts';
 import { buildShoppingMsg } from '../../utils/whatsapp';
 import WaBlock from '../shared/WaBlock';
@@ -26,7 +26,7 @@ function ShopItem({ item, chk, onToggle }) {
 }
 
 export default function ListaScreen({ family, products }) {
-  const list = buildShoppingList(products);
+  const list = useMemo(() => buildShoppingList(products), [products]);
   const [checked, setChecked] = useState({});
   const toggle = (id) => setChecked((p) => ({ ...p, [id]: !p[id] }));
 

@@ -8,7 +8,7 @@ public class FamilyGroup
     [Column("id")] public Guid Id { get; set; } = Guid.NewGuid();
     [Column("name")] public string Name { get; set; } = "";
     [Column("invite_code")] public string InviteCode { get; set; } = "";
-    [Column("pin")] public string Pin { get; set; } = "";
+    [Column("pin")] public string PinHash { get; set; } = "";
     [Column("created_by")] public Guid? CreatedBy { get; set; }
     [Column("whatsapp_phone")] public string? WhatsappPhone { get; set; }
     [Column("notify_expiring")] public bool NotifyExpiring { get; set; } = true;

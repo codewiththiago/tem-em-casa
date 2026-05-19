@@ -22,7 +22,7 @@ public class UpdateFamilySettingsRequest
 public record MemberDto(Guid Id, string Name, DateTime JoinedAt);
 
 public record FamilyGroupDto(
-    Guid Id, string Name, string InviteCode, string Pin,
+    Guid Id, string Name, string InviteCode,
     string? WhatsappPhone, bool NotifyExpiring, bool NotifyLowStock,
     DateTime UpdatedAt, string? UpdatedByName,
     List<MemberDto> Members);

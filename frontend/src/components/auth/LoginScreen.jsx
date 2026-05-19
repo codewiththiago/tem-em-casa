@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import GoogleSignInButton from './GoogleSignInButton';
-import { signInWithGoogle, signInWithEmail, registerWithEmail, firebaseErrorMsg } from '../../services/firebase';
+import { signInWithEmail, registerWithEmail, firebaseErrorMsg } from '../../services/firebase';
 import { loginWithFirebaseToken, createFamily, joinFamily, getFamily, getProducts } from '../../services/api';
 import { useStore } from '../../store/useStore';
 
@@ -38,14 +37,12 @@ export default function LoginScreen() {
       if (e.code === 'ERR_NETWORK' || e.message === 'Network Error') {
         setError('Sem conexão com o servidor. Verifique se o app está rodando.');
       } else {
-        setError(e.response?.data?.message || firebaseErrorMsg(e));
+        const msg = e.response?.data?.message || firebaseErrorMsg(e);
+        setError(`${msg} [${e.code || e.message || 'sem código'}]`);
       }
     }
     setLoading(false);
   };
-
-  const getToken = async (useGoogle) =>
-    useGoogle ? signInWithGoogle() : signInWithEmail(email, password);
 
   const finalizeLogin = async (data) => {
     setAuth({ id: data.user.id, name: data.user.name, email: data.user.email }, data.token, data.familyGroupId);
@@ -79,23 +76,20 @@ export default function LoginScreen() {
   };
 
   // --- login (step='login') ---
-  const doLogin = (google) => () => run(async () => {
-    if (!google && !validateEmail()) return;
-    const { idToken } = await getToken(google);
+  const doLogin = () => run(async () => {
+    if (!validateEmail()) return;
+    const { idToken } = await signInWithEmail(email, password);
     const data = await loginWithFirebaseToken(idToken);
-    localStorage.setItem('dispensa_jwt', data.token);
     await finalizeLogin(data);
   });
 
   // --- create (step='create') ---
-  const doCreate = (google) => () => run(async () => {
+  const doCreate = () => run(async () => {
     if (!validateGroupFields()) return;
-    if (!google && !validateEmail()) return;
-    if (!google && password !== confirmPass) { setError('As senhas não coincidem.'); return; }
-    const getCredential = google ? signInWithGoogle : () => registerWithEmail(email, password);
-    const { idToken } = await getCredential();
+    if (!validateEmail()) return;
+    if (password !== confirmPass) { setError('As senhas não coincidem.'); return; }
+    const { idToken } = await registerWithEmail(email, password);
     const data = await loginWithFirebaseToken(idToken);
-    localStorage.setItem('dispensa_jwt', data.token);
     setAuth({ id: data.user.id, name: memberName.trim() }, data.token, null);
     const { group } = await createFamily(familyName.trim(), pin);
     setFamily(group);
@@ -104,40 +98,17 @@ export default function LoginScreen() {
   });
 
   // --- join (step='join') ---
-  const doJoin = (google) => () => run(async () => {
+  const doJoin = () => run(async () => {
     if (!validateJoinFields()) return;
-    if (!google && !validateEmail()) return;
-    const { idToken } = await getToken(google);
+    if (!validateEmail()) return;
+    const { idToken } = await signInWithEmail(email, password);
     const data = await loginWithFirebaseToken(idToken);
-    localStorage.setItem('dispensa_jwt', data.token);
     setAuth({ id: data.user.id, name: data.user.name }, data.token, null);
     const { group } = await joinFamily(inviteCode.trim().toUpperCase(), joinPin);
     setFamily(group);
     setAuth({ id: data.user.id, name: data.user.name }, data.token, group.id);
     setFamilyGroupId(group.id);
   });
-
-  // --- shared sub-components ---
-  const EmailFields = ({ showConfirm }) => (
-    <>
-      <div className="auth-field">
-        <label>E-mail</label>
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" />
-      </div>
-      <div className="auth-field">
-        <label>Senha</label>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
-      </div>
-      {showConfirm && (
-        <div className="auth-field">
-          <label>Confirmar senha</label>
-          <input type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} placeholder="Repita a senha" />
-        </div>
-      )}
-    </>
-  );
-
-  const OrDivider = () => <div className="auth-or" style={{ margin: '14px 0' }}>── ou ──</div>;
 
   return (
     <div className="auth-screen">
@@ -188,14 +159,15 @@ export default function LoginScreen() {
         {/* ── Login ── */}
         {step === 'login' && (
           <div className="auth-card">
-            <GoogleSignInButton
-              label={loading ? 'Entrando...' : 'Continuar com Google'}
-              onClick={doLogin(true)}
-              disabled={loading}
-            />
-            <OrDivider />
-            <EmailFields />
-            <button className="btn-primary" onClick={doLogin(false)} disabled={loading}>
+            <div className="auth-field">
+              <label>E-mail</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" />
+            </div>
+            <div className="auth-field">
+              <label>Senha</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
+            </div>
+            <button className="btn-primary" onClick={doLogin} disabled={loading}>
               {loading ? 'Entrando...' : 'Entrar →'}
             </button>
             <button className="btn-secondary" onClick={goBack}>Voltar</button>
@@ -222,14 +194,19 @@ export default function LoginScreen() {
               />
               <div className="auth-hint">A família vai usar esse PIN para entrar</div>
             </div>
-            <GoogleSignInButton
-              label={loading ? 'Criando...' : 'Entrar com Google e criar 🎉'}
-              onClick={doCreate(true)}
-              disabled={loading}
-            />
-            <OrDivider />
-            <EmailFields showConfirm />
-            <button className="btn-primary" onClick={doCreate(false)} disabled={loading}>
+            <div className="auth-field">
+              <label>E-mail</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" />
+            </div>
+            <div className="auth-field">
+              <label>Senha</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
+            </div>
+            <div className="auth-field">
+              <label>Confirmar senha</label>
+              <input type="password" value={confirmPass} onChange={(e) => setConfirmPass(e.target.value)} placeholder="Repita a senha" />
+            </div>
+            <button className="btn-primary" onClick={doCreate} disabled={loading}>
               {loading ? 'Criando...' : 'Criar conta e grupo 🎉'}
             </button>
             <button className="btn-secondary" onClick={goBack}>Voltar</button>
@@ -255,18 +232,18 @@ export default function LoginScreen() {
                 placeholder="••••"
               />
             </div>
-            <GoogleSignInButton
-              label={loading ? 'Entrando...' : 'Entrar com Google →'}
-              onClick={doJoin(true)}
-              disabled={loading}
-              style={{ background: 'linear-gradient(135deg,#60A5FA,#2563EB)' }}
-            />
-            <OrDivider />
-            <EmailFields />
+            <div className="auth-field">
+              <label>E-mail</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" />
+            </div>
+            <div className="auth-field">
+              <label>Senha</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
+            </div>
             <button
               className="btn-primary"
               style={{ background: 'linear-gradient(135deg,#60A5FA,#2563EB)' }}
-              onClick={doJoin(false)}
+              onClick={doJoin}
               disabled={loading}
             >
               {loading ? 'Entrando...' : 'Entrar →'}

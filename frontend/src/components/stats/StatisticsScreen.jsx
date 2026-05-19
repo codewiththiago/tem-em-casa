@@ -8,9 +8,6 @@ export default function StatisticsScreen({ products }) {
   const crit = all.filter((a) => a.sev === 'danger');
   const warn = all.filter((a) => a.sev === 'warn');
 
-  const today = new Date();
-  const in7   = new Date(); in7.setDate(today.getDate() + 7);
-
   const catCounts = CATEGORIES.map((c) => ({
     name:  c,
     count: products.filter((p) => p.category === c).length,
@@ -19,10 +16,10 @@ export default function StatisticsScreen({ products }) {
   const maxCat = Math.max(...catCounts.map((c) => c.count), 1);
 
   const alertRows = [
-    { label: 'Estoque zerado',  count: products.filter((p) => p.quantity === 0).length,                                                   color: '#C62828', bg: '#FEF2F2' },
-    { label: 'Estoque baixo',   count: products.filter((p) => p.quantity > 0 && p.quantity <= p.minQuantity).length,                      color: '#E65100', bg: '#FFF3E0' },
-    { label: 'Vencidos',        count: products.filter((p) => p.expiryDate && new Date(p.expiryDate) < today).length,                     color: '#C62828', bg: '#FEF2F2' },
-    { label: 'Vence em 7 dias', count: products.filter((p) => { if (!p.expiryDate) return false; const d = new Date(p.expiryDate); return d >= today && d <= in7; }).length, color: '#E65100', bg: '#FFF3E0' },
+    { label: 'Estoque zerado',  count: all.filter((a) => a.type === 'empty').length,    color: '#C62828', bg: '#FEF2F2' },
+    { label: 'Estoque baixo',   count: all.filter((a) => a.type === 'low').length,      color: '#E65100', bg: '#FFF3E0' },
+    { label: 'Vencidos',        count: all.filter((a) => a.type === 'expired').length,  color: '#C62828', bg: '#FEF2F2' },
+    { label: 'Vence em 7 dias', count: all.filter((a) => a.type === 'expiring').length, color: '#E65100', bg: '#FFF3E0' },
   ];
 
   return (

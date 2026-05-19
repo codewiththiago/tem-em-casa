@@ -15,7 +15,7 @@ services:
       - Jwt__Secret=${JWT_SECRET}
       - Jwt__Issuer=dispensa-api
       - Jwt__Audience=dispensa-app
-      - FrontendUrl=${FRONTEND_URL:-https://app.minhadispensa.com}
+      - FrontendUrl=${FRONTEND_URL:-https://app.temencasa.com}
     depends_on:
       db:
         condition: service_healthy

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using BCrypt.Net;
 using DispensaApi.Data;
 using DispensaApi.DTOs;
 using DispensaApi.Models;
@@ -17,7 +18,7 @@ public class FamilyController(AppDbContext db) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateFamilyRequest req)
     {
-        if (string.IsNullOrWhiteSpace(req.Name) || req.Pin.Length != 4)
+        if (string.IsNullOrWhiteSpace(req.Name) || !System.Text.RegularExpressions.Regex.IsMatch(req.Pin, @"^\d{4}$"))
             return BadRequest("Name required and PIN must be 4 digits.");
 
         var userId = GetUserId();
@@ -26,7 +27,7 @@ public class FamilyController(AppDbContext db) : ControllerBase
         var group = new FamilyGroup
         {
             Name = req.Name.Trim(),
-            Pin = req.Pin,
+            PinHash = BCrypt.Net.BCrypt.HashPassword(req.Pin),
             InviteCode = code,
             CreatedBy = userId,
         };
@@ -48,7 +49,7 @@ public class FamilyController(AppDbContext db) : ControllerBase
         var group = await db.FamilyGroups.FirstOrDefaultAsync(g => g.InviteCode == code);
 
         if (group == null) return NotFound(new { message = "Grupo não encontrado." });
-        if (group.Pin != req.Pin) return BadRequest(new { message = "PIN incorreto." });
+        if (!BCrypt.Net.BCrypt.Verify(req.Pin, group.PinHash)) return BadRequest(new { message = "PIN incorreto." });
 
         var userId = GetUserId();
         var already = await db.FamilyMembers.AnyAsync(m => m.FamilyGroupId == group.Id && m.UserId == userId);
@@ -111,6 +112,16 @@ public class FamilyController(AppDbContext db) : ControllerBase
 
         db.FamilyMembers.Remove(member);
         await db.SaveChangesAsync();
+
+        // Auto-delete group when last member leaves — prevents orphaned groups
+        var remaining = await db.FamilyMembers.CountAsync(m => m.FamilyGroupId == id);
+        if (remaining == 0)
+        {
+            var group = await db.FamilyGroups.FindAsync(id);
+            if (group != null) db.FamilyGroups.Remove(group);
+            await db.SaveChangesAsync();
+        }
+
         return Ok();
     }
 
@@ -121,7 +132,7 @@ public class FamilyController(AppDbContext db) : ControllerBase
             .FirstAsync(x => x.Id == id);
 
         return new FamilyGroupDto(
-            g.Id, g.Name, g.InviteCode, g.Pin,
+            g.Id, g.Name, g.InviteCode,
             g.WhatsappPhone, g.NotifyExpiring, g.NotifyLowStock,
             g.UpdatedAt, g.UpdatedByName,
             g.Members.Select(m => new MemberDto(m.User.Id, m.User.Name, m.JoinedAt)).ToList());

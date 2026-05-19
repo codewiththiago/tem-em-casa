@@ -14,15 +14,28 @@ public class ProductAlertService(AppDbContext db, NotificationService notifier)
             .ToListAsync();
 
         foreach (var group in groups)
-        {
-            var alerts = BuildAlerts(group.Products.ToList(), group.NotifyExpiring, group.NotifyLowStock);
-            if (alerts.Count == 0) continue;
+            await SendForGroupAsync(group);
+    }
 
-            var body = string.Join(", ", alerts.Take(3));
-            if (alerts.Count > 3) body += $" e mais {alerts.Count - 3}";
+    public async Task SendAlertsForGroupAsync(Guid familyGroupId)
+    {
+        var group = await db.FamilyGroups
+            .Include(g => g.Products)
+            .FirstOrDefaultAsync(g => g.Id == familyGroupId);
 
-            await notifier.SendToGroupAsync(group.Id, $"🌿 Minha Dispensa — {group.Name}", body);
-        }
+        if (group != null)
+            await SendForGroupAsync(group);
+    }
+
+    private async Task SendForGroupAsync(Models.FamilyGroup group)
+    {
+        var alerts = BuildAlerts(group.Products.ToList(), group.NotifyExpiring, group.NotifyLowStock);
+        if (alerts.Count == 0) return;
+
+        var body = string.Join(", ", alerts.Take(3));
+        if (alerts.Count > 3) body += $" e mais {alerts.Count - 3}";
+
+        await notifier.SendToGroupAsync(group.Id, $"🏡 Tem em Casa — {group.Name}", body);
     }
 
     private static List<string> BuildAlerts(List<Product> products, bool checkExpiry, bool checkLow)
