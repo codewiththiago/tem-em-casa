@@ -1,24 +1,16 @@
 using FirebaseAdmin.Messaging;
-using DispensaApi.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace DispensaApi.Services;
 
-public class NotificationService(AppDbContext db, ILogger<NotificationService> logger)
+public class NotificationService(ILogger<NotificationService> logger)
 {
-    public async Task SendToGroupAsync(Guid familyGroupId, string title, string body)
+    public async Task SendToTokensAsync(IList<string> tokens, string title, string body)
     {
-        var tokens = await db.FamilyMembers
-            .Where(m => m.FamilyGroupId == familyGroupId)
-            .Join(db.Users, m => m.UserId, u => u.Id, (m, u) => u.FcmToken)
-            .Where(t => t != null)
-            .ToListAsync();
-
         if (tokens.Count == 0) return;
 
         var message = new MulticastMessage
         {
-            Tokens = tokens!,
+            Tokens = tokens.ToList(),
             Notification = new Notification { Title = title, Body = body },
             Android = new AndroidConfig
             {
@@ -29,12 +21,11 @@ public class NotificationService(AppDbContext db, ILogger<NotificationService> l
         try
         {
             var response = await FirebaseMessaging.DefaultInstance.SendEachForMulticastAsync(message);
-            logger.LogInformation("FCM sent {Success}/{Total} for group {GroupId}",
-                response.SuccessCount, tokens.Count, familyGroupId);
+            logger.LogInformation("FCM sent {Success}/{Total}", response.SuccessCount, tokens.Count);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "FCM send failed for group {GroupId}", familyGroupId);
+            logger.LogError(ex, "FCM send failed");
         }
     }
 }

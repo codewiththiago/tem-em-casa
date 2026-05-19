@@ -1,4 +1,6 @@
 using System.Text;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using DispensaApi.Data;
 using DispensaApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -86,6 +88,18 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddRateLimiter(o =>
+{
+    o.AddFixedWindowLimiter("join-family", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(5);
+        opt.PermitLimit = 10;
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 0;
+    });
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
+
 builder.Services.AddCors(o => o.AddPolicy("AllowFrontend", p =>
     p.WithOrigins(
         builder.Configuration["FrontendUrl"] ?? "http://localhost:5173",
@@ -108,6 +122,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRateLimiter();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();

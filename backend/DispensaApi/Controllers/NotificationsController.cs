@@ -23,6 +23,9 @@ public class NotificationsController(ProductAlertService alertService, AppDbCont
         return Ok(new { message = "Alertas enviados." });
     }
 
-    private Guid GetUserId() =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub")!);
+    private Guid GetUserId()
+    {
+        var value = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        return Guid.TryParse(value, out var id) ? id : throw new InvalidOperationException("Invalid user identity claim.");
+    }
 }

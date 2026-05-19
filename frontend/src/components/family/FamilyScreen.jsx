@@ -22,16 +22,19 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
     notifyLowStock: family.notifyLowStock ?? true,
   });
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [leaveError, setLeaveError] = useState('');
   const [copiedInvite, setCopiedInvite] = useState(false);
   const [activity, setActivity] = useState([]);
-  const [showActivity, setShowActivity] = useState(false);
   const [tab, setTab] = useState('members'); // members | activity
 
   useEffect(() => {
     if (tab === 'activity' && activity.length === 0) {
-      getFamilyActivity(family.id).then((d) => setActivity(d.logs || [])).catch((err) => console.error('Failed to load activity:', err));
+      getFamilyActivity(family.id)
+        .then((d) => setActivity(d.logs || []))
+        .catch((err) => console.error('Failed to load activity:', err));
     }
-  }, [tab]);
+  }, [tab, family.id]);
 
   const set = (k, v) => setSettings((f) => ({ ...f, [k]: v }));
 
@@ -40,9 +43,11 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
       const { group } = await updateFamilySettings(family.id, settings);
       onFamilyUpdate(group);
       setSaved(true);
+      setSaveError('');
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
       console.error('Save settings failed:', err);
+      setSaveError('Erro ao salvar configurações. Tente novamente.');
     }
   };
 
@@ -53,6 +58,7 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
       onLogout();
     } catch (err) {
       console.error('Leave family failed:', err);
+      setLeaveError('Erro ao sair do grupo. Tente novamente.');
     }
   };
 
@@ -197,10 +203,12 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
 
           <button className="btn-primary" onClick={handleSave}>💾 Salvar configurações</button>
           {saved && <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#059669', marginTop: 10 }}>✓ Salvo!</div>}
+          {saveError && <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#DC2626', marginTop: 10 }}>{saveError}</div>}
 
           <div style={{ marginTop: 24, borderTop: '1px solid #F3F4F6', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <button className="dp-logout-btn" style={{ background: '#F9FAFB', color: '#6B7280', borderColor: '#E5E7EB' }} onClick={onLogout}>← Sair da conta</button>
             <button className="dp-logout-btn" onClick={handleLeave}>🚪 Sair do grupo</button>
+            {leaveError && <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#DC2626' }}>{leaveError}</div>}
           </div>
         </div>
       )}

@@ -19,6 +19,7 @@ export default function ProductModal({ product, onSave, onClose }) {
     notes:       product?.notes       || '',
   });
   const [scanning, setScanning] = useState(false);
+  const [error, setError] = useState('');
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -41,13 +42,14 @@ export default function ProductModal({ product, onSave, onClose }) {
   };
 
   const handleSave = () => {
-    if (!form.name.trim()) return;
-    onSave({
-      ...form,
-      quantity:    Number(form.quantity),
-      minQuantity: Number(form.minQuantity),
-      maxQuantity: Number(form.maxQuantity),
-    });
+    if (!form.name.trim()) { setError('Nome do produto é obrigatório.'); return; }
+    const qty = Number(form.quantity);
+    const min = Number(form.minQuantity);
+    const max = Number(form.maxQuantity);
+    if (isNaN(qty) || isNaN(min) || isNaN(max)) { setError('Informe quantidades válidas.'); return; }
+    if (min > max) { setError('A quantidade mínima não pode ser maior que a máxima.'); return; }
+    setError('');
+    onSave({ ...form, quantity: qty, minQuantity: min, maxQuantity: max });
   };
 
   return (
@@ -60,6 +62,12 @@ export default function ProductModal({ product, onSave, onClose }) {
         </div>
 
         <div className="dp-modal-body">
+        {error && (
+          <div style={{ margin: '0 0 8px', padding: '8px 12px', background: '#FEF2F2',
+            color: '#DC2626', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
+            {error}
+          </div>
+        )}
         <div className="dp-field">
           <label>Nome do produto *</label>
           <div style={{ display: 'flex', gap: 8 }}>

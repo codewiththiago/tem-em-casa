@@ -30,7 +30,7 @@ export default function ListaScreen({ family, products }) {
   const [checked, setChecked] = useState({});
   const toggle = (id) => setChecked((p) => ({ ...p, [id]: !p[id] }));
 
-  const doneCount = Object.values(checked).filter(Boolean).length;
+  const doneCount = list.filter((i) => checked[i.id]).length;
   const pct = list.length > 0 ? Math.round((doneCount / list.length) * 100) : 0;
   const unchecked = list.filter((i) => !checked[i.id]);
   const chkd = list.filter((i) => checked[i.id]);
@@ -50,10 +50,11 @@ export default function ListaScreen({ family, products }) {
     let y = 38;
     Object.entries(byLoc).forEach(([loc, items]) => {
       doc.setFont('helvetica', 'bold');
-      doc.text(`📍 ${loc}`, 20, y); y += 7;
+      doc.text(loc, 20, y); y += 7;
       doc.setFont('helvetica', 'normal');
       items.forEach((i) => {
-        doc.text(`  • ${i.name}  —  ${i.toBuy} ${i.unit}${i.urgent ? '  🔴' : ''}`, 20, y);
+        const tag = i.urgent ? ' [urgente]' : '';
+        doc.text(`  - ${i.name}  -  ${i.toBuy} ${i.unit}${tag}`, 20, y);
         y += 7;
         if (y > 270) { doc.addPage(); y = 20; }
       });

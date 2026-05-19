@@ -29,7 +29,7 @@ public class ProductsController(AppDbContext db) : ControllerBase
     public async Task<IActionResult> Alerts(Guid familyId)
     {
         if (!await IsMember(familyId)) return Forbid();
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = DispensaApi.Services.LocalTime.Today();
         var products = await db.Products
             .Where(p => p.FamilyGroupId == familyId &&
                         (p.Quantity < p.MinQuantity ||
@@ -166,6 +166,9 @@ public class ProductsController(AppDbContext db) : ControllerBase
         return await db.Users.Where(u => u.Id == userId).Select(u => u.Name).FirstOrDefaultAsync() ?? "Alguém";
     }
 
-    private Guid GetUserId() =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub")!);
+    private Guid GetUserId()
+    {
+        var value = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        return Guid.TryParse(value, out var id) ? id : throw new InvalidOperationException("Invalid user identity claim.");
+    }
 }

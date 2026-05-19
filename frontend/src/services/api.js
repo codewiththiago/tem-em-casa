@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getIdToken } from './firebase';
+import { useStore } from '../store/useStore';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -11,6 +12,9 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+// Singleton promise prevents multiple concurrent 401s from triggering parallel refreshes.
+let refreshPromise = null;
+
 api.interceptors.response.use(
   (r) => r,
   async (err) => {
@@ -18,18 +22,24 @@ api.interceptors.response.use(
     if (err.response?.status === 401 && !isLoginEndpoint && !err.config?._retry) {
       err.config._retry = true;
       try {
-        const idToken = await getIdToken();
-        if (idToken) {
-          const { data } = await axios.post(`${BASE_URL}/api/auth/login`, { idToken });
-          localStorage.setItem('dispensa_jwt', data.token);
-          err.config.headers = { ...err.config.headers, Authorization: `Bearer ${data.token}` };
-          return api(err.config);
+        if (!refreshPromise) {
+          refreshPromise = getIdToken()
+            .then(async (idToken) => {
+              if (!idToken) throw new Error('No Firebase token available');
+              const { data } = await axios.post(`${BASE_URL}/api/auth/login`, { idToken });
+              localStorage.setItem('dispensa_jwt', data.token);
+              return data.token;
+            })
+            .finally(() => { refreshPromise = null; });
         }
+        const token = await refreshPromise;
+        err.config.headers = { ...err.config.headers, Authorization: `Bearer ${token}` };
+        return api(err.config);
       } catch (refreshErr) {
         console.error('Token refresh failed:', refreshErr);
+        localStorage.removeItem('dispensa_jwt');
+        useStore.getState().clearAuth();
       }
-      localStorage.removeItem('dispensa_jwt');
-      window.location.reload();
     }
     return Promise.reject(err);
   }

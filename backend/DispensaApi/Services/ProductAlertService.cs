@@ -13,8 +13,22 @@ public class ProductAlertService(AppDbContext db, NotificationService notifier)
             .Include(g => g.Products)
             .ToListAsync();
 
+        if (groups.Count == 0) return;
+
+        // Load all FCM tokens for all relevant groups in a single query instead of N queries.
+        var groupIds = groups.Select(g => g.Id).ToList();
+        var tokensByGroup = await db.FamilyMembers
+            .Where(m => groupIds.Contains(m.FamilyGroupId))
+            .Join(db.Users, m => m.UserId, u => u.Id, (m, u) => new { m.FamilyGroupId, u.FcmToken })
+            .Where(x => x.FcmToken != null)
+            .GroupBy(x => x.FamilyGroupId)
+            .ToDictionaryAsync(g => g.Key, g => g.Select(x => x.FcmToken!).ToList());
+
         foreach (var group in groups)
-            await SendForGroupAsync(group);
+        {
+            var tokens = tokensByGroup.GetValueOrDefault(group.Id, []);
+            await SendForGroupAsync(group, tokens);
+        }
     }
 
     public async Task SendAlertsForGroupAsync(Guid familyGroupId)
@@ -23,25 +37,33 @@ public class ProductAlertService(AppDbContext db, NotificationService notifier)
             .Include(g => g.Products)
             .FirstOrDefaultAsync(g => g.Id == familyGroupId);
 
-        if (group != null)
-            await SendForGroupAsync(group);
+        if (group == null) return;
+
+        var tokens = await db.FamilyMembers
+            .Where(m => m.FamilyGroupId == familyGroupId)
+            .Join(db.Users, m => m.UserId, u => u.Id, (m, u) => u.FcmToken)
+            .Where(t => t != null)
+            .Select(t => t!)
+            .ToListAsync();
+
+        await SendForGroupAsync(group, tokens);
     }
 
-    private async Task SendForGroupAsync(Models.FamilyGroup group)
+    private async Task SendForGroupAsync(FamilyGroup group, IList<string> tokens)
     {
         var alerts = BuildAlerts(group.Products.ToList(), group.NotifyExpiring, group.NotifyLowStock);
-        if (alerts.Count == 0) return;
+        if (alerts.Count == 0 || tokens.Count == 0) return;
 
         var body = string.Join(", ", alerts.Take(3));
         if (alerts.Count > 3) body += $" e mais {alerts.Count - 3}";
 
-        await notifier.SendToGroupAsync(group.Id, $"🏡 Tem em Casa — {group.Name}", body);
+        await notifier.SendToTokensAsync(tokens, $"🏡 Tem em Casa — {group.Name}", body);
     }
 
     private static List<string> BuildAlerts(List<Product> products, bool checkExpiry, bool checkLow)
     {
         var alerts = new List<string>();
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = LocalTime.Today();
 
         foreach (var p in products)
         {

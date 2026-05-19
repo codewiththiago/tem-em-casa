@@ -6,6 +6,7 @@ using DispensaApi.DTOs;
 using DispensaApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace DispensaApi.Controllers;
@@ -22,27 +23,38 @@ public class FamilyController(AppDbContext db) : ControllerBase
             return BadRequest("Name required and PIN must be 4 digits.");
 
         var userId = GetUserId();
-        var code = await GenerateUniqueCode();
+        var pinHash = BCrypt.Net.BCrypt.HashPassword(req.Pin);
 
-        var group = new FamilyGroup
+        // Retry on the (extremely rare) unique constraint collision for invite_code.
+        for (int attempt = 0; attempt < 5; attempt++)
         {
-            Name = req.Name.Trim(),
-            PinHash = BCrypt.Net.BCrypt.HashPassword(req.Pin),
-            InviteCode = code,
-            CreatedBy = userId,
-        };
-        db.FamilyGroups.Add(group);
+            var group = new FamilyGroup
+            {
+                Name = req.Name.Trim(),
+                PinHash = pinHash,
+                InviteCode = GenerateCode(),
+                CreatedBy = userId,
+            };
+            db.FamilyGroups.Add(group);
+            db.FamilyMembers.Add(new FamilyMember { FamilyGroupId = group.Id, UserId = userId });
 
-        var member = new FamilyMember { FamilyGroupId = group.Id, UserId = userId };
-        db.FamilyMembers.Add(member);
+            try
+            {
+                await db.SaveChangesAsync();
+                await LogActivity(group.Id, userId, "create_group", null);
+                return Ok(new { group = await GetGroupDto(group.Id) });
+            }
+            catch (DbUpdateException ex) when (IsInviteCodeConflict(ex))
+            {
+                db.ChangeTracker.Clear();
+            }
+        }
 
-        await db.SaveChangesAsync();
-
-        await LogActivity(group.Id, userId, "create_group", null);
-        return Ok(new { group = await GetGroupDto(group.Id) });
+        return StatusCode(500, new { message = "Não foi possível gerar código de convite único." });
     }
 
     [HttpPost("join")]
+    [EnableRateLimiting("join-family")]
     public async Task<IActionResult> Join([FromBody] JoinFamilyRequest req)
     {
         var code = req.InviteCode.Trim().ToUpperInvariant();
@@ -164,23 +176,23 @@ public class FamilyController(AppDbContext db) : ControllerBase
         return await db.Users.Where(u => u.Id == userId).Select(u => u.Name).FirstOrDefaultAsync() ?? "Alguém";
     }
 
-    private async Task<string> GenerateUniqueCode()
+    private static string GenerateCode()
     {
         const string letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
         const string digits = "23456789";
-        var rng = Random.Shared;
-
-        while (true)
-        {
-            var sb = new StringBuilder(6);
-            for (int i = 0; i < 4; i++) sb.Append(letters[rng.Next(letters.Length)]);
-            for (int i = 0; i < 2; i++) sb.Append(digits[rng.Next(digits.Length)]);
-            var code = sb.ToString();
-            if (!await db.FamilyGroups.AnyAsync(g => g.InviteCode == code))
-                return code;
-        }
+        var sb = new StringBuilder(6);
+        for (int i = 0; i < 4; i++) sb.Append(letters[Random.Shared.Next(letters.Length)]);
+        for (int i = 0; i < 2; i++) sb.Append(digits[Random.Shared.Next(digits.Length)]);
+        return sb.ToString();
     }
 
-    private Guid GetUserId() =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub")!);
+    private static bool IsInviteCodeConflict(DbUpdateException ex) =>
+        ex.InnerException?.Message.Contains("invite_code", StringComparison.OrdinalIgnoreCase) == true ||
+        ex.InnerException?.Message.Contains("InviteCode", StringComparison.OrdinalIgnoreCase) == true;
+
+    private Guid GetUserId()
+    {
+        var value = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        return Guid.TryParse(value, out var id) ? id : throw new InvalidOperationException("Invalid user identity claim.");
+    }
 }

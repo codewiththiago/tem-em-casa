@@ -92,21 +92,24 @@ export default function App() {
         const created = await createProduct(familyGroupId, formData);
         upsertProduct(created);
       }
+      setShowModal(false);
+      setEditingProduct(null);
     } catch (err) {
       console.error('Save product failed:', err);
+      showError('Erro ao salvar produto. Verifique sua conexão e tente novamente.');
     }
-    setShowModal(false);
-    setEditingProduct(null);
   };
 
   const handleDelete = async (id) => {
     try {
       await deleteProduct(familyGroupId, id);
       removeProduct(id);
+      setDeleteConfirm(null);
     } catch (err) {
       console.error('Delete product failed:', err);
+      showError('Erro ao remover produto. Tente novamente.');
+      setDeleteConfirm(null);
     }
-    setDeleteConfirm(null);
   };
 
   const handleEdit = (p) => { setEditingProduct(p); setShowModal(true); };
@@ -114,6 +117,18 @@ export default function App() {
 
   const handleFamilyUpdate = (group) => setFamily(group);
   const handleLogout = () => { signOutUser().catch(() => {}); clearAuth(); };
+
+  const allAlerts = useMemo(
+    () => products.flatMap((p) => getAlerts(p).map((a) => ({ ...a, product: p }))),
+    [products]
+  );
+  const shopList = useMemo(() => buildShoppingList(products), [products]);
+
+  const [errorMsg, setErrorMsg] = useState('');
+  const showError = (msg) => {
+    setErrorMsg(msg);
+    setTimeout(() => setErrorMsg(''), 4000);
+  };
 
   if (!loaded) {
     return (
@@ -127,12 +142,6 @@ export default function App() {
   if (!user || !familyGroupId || !family) {
     return <LoginScreen />;
   }
-
-  const allAlerts = useMemo(
-    () => products.flatMap((p) => getAlerts(p).map((a) => ({ ...a, product: p }))),
-    [products]
-  );
-  const shopList = useMemo(() => buildShoppingList(products), [products]);
 
   return (
     <>
@@ -180,6 +189,18 @@ export default function App() {
           onSave={handleSaveProduct}
           onClose={() => { setShowModal(false); setEditingProduct(null); }}
         />
+      )}
+
+      {errorMsg && (
+        <div style={{
+          position: 'fixed', bottom: 80, left: 16, right: 16, zIndex: 9999,
+          background: '#DC2626', color: 'white', borderRadius: 12,
+          padding: '12px 16px', fontFamily: 'Nunito, sans-serif',
+          fontWeight: 700, fontSize: 14, textAlign: 'center',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+        }}>
+          {errorMsg}
+        </div>
       )}
 
       {deleteConfirm && (

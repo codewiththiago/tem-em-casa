@@ -32,11 +32,12 @@ public class AuthController(AppDbContext db, IFirebaseService firebase, IConfigu
             var user = await db.Users.FirstOrDefaultAsync(u => u.FirebaseUid == decoded.Uid);
             if (user == null)
             {
+                var rawEmail = decoded.Claims.TryGetValue("email", out var e) ? e.ToString() : null;
                 user = new User
                 {
                     FirebaseUid = decoded.Uid,
                     Name = decoded.Claims.TryGetValue("name", out var n) ? n.ToString()! : "Usuário",
-                    Email = decoded.Claims.TryGetValue("email", out var e) ? e.ToString() : null,
+                    Email = string.IsNullOrEmpty(rawEmail) ? null : rawEmail,
                 };
                 db.Users.Add(user);
             }
@@ -93,6 +94,9 @@ public class AuthController(AppDbContext db, IFirebaseService firebase, IConfigu
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    private Guid GetUserId() =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub")!);
+    private Guid GetUserId()
+    {
+        var value = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        return Guid.TryParse(value, out var id) ? id : throw new InvalidOperationException("Invalid user identity claim.");
+    }
 }
