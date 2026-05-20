@@ -100,14 +100,28 @@ npm run cap:android
 
 ---
 
-## ▶️ Fase 5 — Deploy Backend no Railway
+## ▶️ Fase 5 — Deploy Backend (Render + Neon)
 
-1. Acesse https://railway.app → New Project → Deploy from GitHub
-2. Selecionar a pasta `backend`
-3. Adicionar variáveis de ambiente do `.env`
-4. Adicionar serviço PostgreSQL no Railway
-5. Copiar a URL do banco para `ConnectionStrings__Default`
-6. Anotar a URL pública da API → colocar em `VITE_API_URL` no frontend
+### Banco de dados — Neon (PostgreSQL gratuito)
+1. Acesse https://neon.tech → Create project → **tem-em-casa**
+2. Copiar a **connection string direta** (sem `-pooler`) → `DATABASE_URL`
+
+### Backend — Render
+1. Acesse https://render.com → New Web Service → Deploy from GitHub
+2. Selecionar a pasta `backend`, runtime: Docker
+3. Variáveis de ambiente:
+   - `DATABASE_URL` — connection string do Neon
+   - `FIREBASE_PROJECT_ID` — ID do projeto Firebase
+   - `FIREBASE_SERVICE_ACCOUNT_KEY` — JSON da service account em base64
+   - `JWT_SECRET` — string aleatória longa (mínimo 32 chars)
+   - `Jwt__Issuer=dispensa-api`
+   - `Jwt__Audience=dispensa-app`
+   - `FrontendUrl` — URL do frontend (ou deixar em branco para só mobile)
+4. URL pública gerada → colocar em `VITE_API_URL` no `.env.production` do frontend
+
+### Manter ativo — UptimeRobot
+- Monitor HTTP(s) em `https://<sua-url>.onrender.com/api/auth/health`
+- Intervalo: 5 minutos (evita o sleep do plano free)
 
 ---
 
@@ -124,7 +138,7 @@ npm run cap:android
 
 ## ✅ Checklist de Publicação
 
-- [ ] Login com Google funcionando no device físico
+- [ ] Login com e-mail/senha funcionando no device físico
 - [ ] Criar e entrar em grupo familiar
 - [ ] CRUD de produtos completo
 - [ ] Alertas exibidos corretamente

@@ -10,6 +10,10 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Allow JWT_SECRET env var to override Jwt:Secret (Render uses single-underscore naming)
+if (Environment.GetEnvironmentVariable("JWT_SECRET") is { Length: > 0 } jwtEnv)
+    builder.Configuration["Jwt:Secret"] = jwtEnv;
+
 string connStr;
 
 static string ParsePostgresUrl(string rawUrl)

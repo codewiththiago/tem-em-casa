@@ -18,9 +18,7 @@ export async function initNotifications() {
     });
     if (token) await updateFcmToken(token);
 
-    listeners.push(await FirebaseMessaging.addListener('notificationReceived', (event) => {
-      console.log('FCM foreground:', event.notification);
-    }));
+    listeners.push(await FirebaseMessaging.addListener('notificationReceived', () => {}));
 
     listeners.push(await FirebaseMessaging.addListener('tokenReceived', async ({ token: newToken }) => {
       await updateFcmToken(newToken);

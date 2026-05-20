@@ -35,8 +35,7 @@ api.interceptors.response.use(
         const token = await refreshPromise;
         err.config.headers = { ...err.config.headers, Authorization: `Bearer ${token}` };
         return api(err.config);
-      } catch (refreshErr) {
-        console.error('Token refresh failed:', refreshErr);
+      } catch {
         localStorage.removeItem('dispensa_jwt');
         useStore.getState().clearAuth();
       }

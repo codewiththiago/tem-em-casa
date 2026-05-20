@@ -38,8 +38,8 @@ export default function App() {
           setFamily(group);
           setProducts(prods);
           await initNotifications();
-        } catch (err) {
-          console.error('Initial load failed:', err);
+        } catch {
+          // silent — user will see stale/empty state
         }
       }
       setLoaded(true);
@@ -58,8 +58,8 @@ export default function App() {
         ]);
         setFamily(group);
         setProducts(prods);
-      } catch (err) {
-        console.error('Sync failed:', err);
+      } catch {
+        // silent background sync failure
       }
     };
     const interval = setInterval(sync, 60000);
@@ -77,8 +77,8 @@ export default function App() {
       ]);
       setFamily(group);
       setProducts(prods);
-    } catch (err) {
-      console.error('Manual sync failed:', err);
+    } catch {
+      // silent
     }
     setTimeout(() => setSyncing(false), 700);
   }, [familyGroupId]);
@@ -94,8 +94,7 @@ export default function App() {
       }
       setShowModal(false);
       setEditingProduct(null);
-    } catch (err) {
-      console.error('Save product failed:', err);
+    } catch {
       showError('Erro ao salvar produto. Verifique sua conexão e tente novamente.');
     }
   };
@@ -105,8 +104,7 @@ export default function App() {
       await deleteProduct(familyGroupId, id);
       removeProduct(id);
       setDeleteConfirm(null);
-    } catch (err) {
-      console.error('Delete product failed:', err);
+    } catch {
       showError('Erro ao remover produto. Tente novamente.');
       setDeleteConfirm(null);
     }

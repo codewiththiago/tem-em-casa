@@ -93,7 +93,6 @@ public class FirebaseService : IFirebaseService
         catch (Exception ex)
         {
             _initError = ex.Message;
-            Console.WriteLine($"[FirebaseService] Init skipped: {ex.Message}");
         }
     }
 

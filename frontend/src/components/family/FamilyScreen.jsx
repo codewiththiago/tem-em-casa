@@ -32,7 +32,7 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
     if (tab === 'activity' && activity.length === 0) {
       getFamilyActivity(family.id)
         .then((d) => setActivity(d.logs || []))
-        .catch((err) => console.error('Failed to load activity:', err));
+        .catch(() => {});
     }
   }, [tab, family.id]);
 
@@ -45,8 +45,7 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
       setSaved(true);
       setSaveError('');
       setTimeout(() => setSaved(false), 2500);
-    } catch (err) {
-      console.error('Save settings failed:', err);
+    } catch {
       setSaveError('Erro ao salvar configurações. Tente novamente.');
     }
   };
@@ -56,8 +55,7 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
     try {
       await leaveFamily(family.id);
       onLogout();
-    } catch (err) {
-      console.error('Leave family failed:', err);
+    } catch {
       setLeaveError('Erro ao sair do grupo. Tente novamente.');
     }
   };
