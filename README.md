@@ -42,7 +42,7 @@ dotnet run
 
 1. Acesse https://console.firebase.google.com
 2. Criar projeto → **Tem em Casa**
-3. Authentication → Google → Habilitar
+3. Authentication → E-mail/senha → Habilitar
 4. Project Settings → General → Adicionar app Android
    - Package: `com.querencialabs.temencasa`
    - Baixar `google-services.json`
@@ -89,13 +89,26 @@ npx cap add android
 cp /caminho/para/google-services.json android/app/google-services.json
 
 # 5. Sincronizar e abrir no Android Studio
-npm run cap:android
+npx cap sync android
 ```
 
-### No Android Studio:
+### Build de debug (teste local)
+
+```bash
+cd frontend/android
+./gradlew assembleDebug
+# APK gerado em: app/build/outputs/apk/debug/app-debug.apk
+
+# Instalar via ADB
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Build de release (Play Store)
+
+No Android Studio:
 1. `Build → Generate Signed Bundle/APK`
 2. Escolher `Android App Bundle (AAB)`
-3. Criar keystore (guarde o arquivo .jks com segurança!)
+3. Criar ou selecionar keystore (guarde o arquivo `.jks` com segurança!)
 4. Gerar o AAB assinado
 
 ---
@@ -120,8 +133,9 @@ npm run cap:android
 4. URL pública gerada → colocar em `VITE_API_URL` no `.env.production` do frontend
 
 ### Manter ativo — UptimeRobot
-- Monitor HTTP(s) em `https://<sua-url>.onrender.com/api/auth/health`
+- Monitor HTTP(s) em `https://<sua-url>.onrender.com/health`
 - Intervalo: 5 minutos (evita o sleep do plano free)
+- O endpoint responde tanto GET quanto HEAD
 
 ---
 
@@ -130,7 +144,7 @@ npm run cap:android
 1. Criar conta em https://play.google.com/console (US$ 25 — única vez)
 2. Criar → Novo app → "Tem em Casa" → Categoria: Casa e moradia
 3. Configurar ficha: descrição, screenshots, feature graphic
-4. Política de privacidade (obrigatória) — criar página no GitHub Pages ou Notion
+4. Política de privacidade (obrigatória) — publicar URL em `querencialabs.com/privacidade`
 5. Upload do AAB assinado
 6. Submeter para revisão interna → depois produção (3–7 dias)
 
@@ -139,6 +153,7 @@ npm run cap:android
 ## ✅ Checklist de Publicação
 
 - [ ] Login com e-mail/senha funcionando no device físico
+- [ ] Recuperação de senha por e-mail funcionando
 - [ ] Criar e entrar em grupo familiar
 - [ ] CRUD de produtos completo
 - [ ] Alertas exibidos corretamente
@@ -147,6 +162,8 @@ npm run cap:android
 - [ ] Notificações push chegando (app fechado)
 - [ ] Leitor de código de barras
 - [ ] Sincronização automática entre membros
+- [ ] Puxar para atualizar funcionando
+- [ ] Editar nome do perfil funcionando
 - [ ] Splash screen e ícone configurados
 - [ ] AAB assinado gerado
 - [ ] Política de privacidade publicada
@@ -175,3 +192,23 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=xxxxx
 VITE_FIREBASE_APP_ID=xxxxx
 VITE_FIREBASE_VAPID_KEY=xxxxx
 ```
+
+---
+
+## 🏗️ Funcionalidades Implementadas
+
+- Autenticação por e-mail/senha (Firebase Auth)
+- Recuperação de senha por e-mail
+- Grupos familiares com código de convite + PIN
+- CRUD completo de produtos (nome, quantidade, unidade, mínimo, validade, categoria)
+- Alertas de estoque baixo e próximo do vencimento
+- Lista de compras gerada automaticamente
+- Compartilhamento via WhatsApp
+- Notificações push (FCM)
+- Leitor de código de barras (câmera)
+- Sincronização automática a cada 60s + puxar para atualizar
+- Histórico de atividades do grupo
+- Editar nome do perfil
+- Banner offline quando sem conexão
+- Estatísticas de estoque por categoria
+- Error boundary com tela de recuperação
