@@ -30,12 +30,12 @@ public class FirebaseService : IFirebaseService
                 return;
             }
 
-            var serviceAccountKey = _cfg["Firebase:ServiceAccountKey"]
-                ?? Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_KEY")
-                ?? "";
-            var projectId = _cfg["Firebase:ProjectId"]
-                ?? Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID")
-                ?? "";
+            var serviceAccountKey =
+                _cfg["Firebase:ServiceAccountKey"] is { Length: > 0 } sak ? sak
+                : Environment.GetEnvironmentVariable("FIREBASE_SERVICE_ACCOUNT_KEY") ?? "";
+            var projectId =
+                _cfg["Firebase:ProjectId"] is { Length: > 0 } pid ? pid
+                : Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID") ?? "";
 
             if (string.IsNullOrWhiteSpace(projectId))
             {
