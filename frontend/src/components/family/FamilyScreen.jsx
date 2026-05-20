@@ -202,7 +202,7 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
           </div>
 
           <button className="btn-primary" onClick={handleSave}>💾 Salvar configurações</button>
-          {saved && <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#059669', marginTop: 10 }}>✓ Salvo!</div>}
+          {saved && <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#1E3A5F', marginTop: 10 }}>✓ Salvo!</div>}
           {saveError && <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#DC2626', marginTop: 10 }}>{saveError}</div>}
 
           <div style={{ marginTop: 24, borderTop: '1px solid #F3F4F6', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>

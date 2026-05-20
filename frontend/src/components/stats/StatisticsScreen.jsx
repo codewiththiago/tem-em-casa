@@ -1,7 +1,7 @@
 import { getAlerts } from '../../utils/alerts';
 
 const CATEGORIES = ['Alimentos', 'Bebidas', 'Limpeza', 'Higiene', 'Outros'];
-const CAT_COLORS  = { Alimentos: '#E65100', Bebidas: '#1565C0', Limpeza: '#2E7D32', Higiene: '#C2185B', Outros: '#512DA8' };
+const CAT_COLORS  = { Alimentos: '#E65100', Bebidas: '#1E3A5F', Limpeza: '#2D5FA3', Higiene: '#C2185B', Outros: '#512DA8' };
 
 export default function StatisticsScreen({ products }) {
   const all  = products.flatMap((p) => getAlerts(p).map((a) => ({ ...a, product: p })));
@@ -32,9 +32,9 @@ export default function StatisticsScreen({ products }) {
       {/* Top metric cards */}
       <div style={{ display: 'flex', gap: 12, padding: '16px 16px 0' }}>
         {[
-          { n: products.length, l: 'Total',    s: 'itens',   color: '#2E7D32', bg: '#E8F5E9' },
-          { n: crit.length,     l: 'Críticos', s: 'urgente', color: crit.length > 0 ? '#C62828' : '#2E7D32', bg: crit.length > 0 ? '#FEF2F2' : '#E8F5E9' },
-          { n: warn.length,     l: 'Avisos',   s: 'atenção', color: warn.length > 0 ? '#E65100' : '#2E7D32', bg: warn.length > 0 ? '#FFF3E0' : '#E8F5E9' },
+          { n: products.length, l: 'Total',    s: 'itens',   color: '#1E3A5F', bg: '#EBF3FF' },
+          { n: crit.length,     l: 'Críticos', s: 'urgente', color: crit.length > 0 ? '#C62828' : '#1E3A5F', bg: crit.length > 0 ? '#FEF2F2' : '#EBF3FF' },
+          { n: warn.length,     l: 'Avisos',   s: 'atenção', color: warn.length > 0 ? '#E65100' : '#1E3A5F', bg: warn.length > 0 ? '#FFF3E0' : '#EBF3FF' },
         ].map((m) => (
           <div key={m.l} style={{ flex: 1, background: 'white', borderRadius: 16, padding: '16px 12px', boxShadow: '0 2px 8px rgba(0,0,0,.06)', display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: m.bg, marginBottom: 4 }} />

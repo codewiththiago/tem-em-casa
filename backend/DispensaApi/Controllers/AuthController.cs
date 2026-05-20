@@ -7,6 +7,7 @@ using DispensaApi.Models;
 using DispensaApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -22,6 +23,7 @@ public class AuthController(AppDbContext db, IFirebaseService firebase, IConfigu
         return Ok(new { status = "ok", firebase = firebase.IsReady, initError = firebase.InitError });
     }
 
+    [EnableRateLimiting("login")]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest req)
     {

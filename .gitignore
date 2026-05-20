@@ -1,7 +1,9 @@
 # Credenciais — nunca commitar
 .env
+.env.*
 backend/.env
 frontend/.env
+frontend/.env.*
 *.env.local
 serviceAccountKey.json
 google-services.json

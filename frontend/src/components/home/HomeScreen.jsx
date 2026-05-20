@@ -12,7 +12,7 @@ const NAV_ITEMS = [
 const CATEGORIES = [
   { id: 'Alimentos', icon: '🍎', bg: '#FFF3E0', color: '#E65100' },
   { id: 'Bebidas',   icon: '🥤', bg: '#E3F2FD', color: '#1565C0' },
-  { id: 'Limpeza',   icon: '🧹', bg: '#E8F5E9', color: '#2E7D32' },
+  { id: 'Limpeza',   icon: '🧹', bg: '#EBF3FF', color: '#1E3A5F' },
   { id: 'Higiene',   icon: '🧴', bg: '#FCE4EC', color: '#C2185B' },
   { id: 'Outros',    icon: '📦', bg: '#EDE7F6', color: '#512DA8' },
 ];
@@ -152,34 +152,34 @@ export default function HomeScreen({ family, user, products, onEdit, onNavigate,
       {/* Stat cards */}
       <div className="home-stats">
         <div className="home-stat-card">
-          <div className="home-stat-icon" style={{ background: '#E8F5E9' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" strokeWidth="2" strokeLinecap="round">
+          <div className="home-stat-icon" style={{ background: '#EBF3FF' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E3A5F" strokeWidth="2" strokeLinecap="round">
               <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
             </svg>
           </div>
-          <div className="home-stat-n" style={{ color: '#2E7D32' }}>{products.length}</div>
+          <div className="home-stat-n" style={{ color: '#1E3A5F' }}>{products.length}</div>
           <div className="home-stat-l">Itens</div>
           <div className="home-stat-s">no estoque</div>
         </div>
         <div className="home-stat-card">
-          <div className="home-stat-icon" style={{ background: crit.length > 0 ? '#FEE2E2' : '#E8F5E9' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={crit.length > 0 ? '#C62828' : '#2E7D32'} strokeWidth="2" strokeLinecap="round">
+          <div className="home-stat-icon" style={{ background: crit.length > 0 ? '#FEE2E2' : '#EBF3FF' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={crit.length > 0 ? '#C62828' : '#1E3A5F'} strokeWidth="2" strokeLinecap="round">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
               <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
           </div>
-          <div className="home-stat-n" style={{ color: crit.length > 0 ? '#C62828' : '#2E7D32' }}>{crit.length}</div>
+          <div className="home-stat-n" style={{ color: crit.length > 0 ? '#C62828' : '#1E3A5F' }}>{crit.length}</div>
           <div className="home-stat-l">Críticos</div>
           <div className="home-stat-s">urgente</div>
         </div>
         <div className="home-stat-card">
-          <div className="home-stat-icon" style={{ background: warn.length > 0 ? '#FFF3E0' : '#E8F5E9' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={warn.length > 0 ? '#E65100' : '#2E7D32'} strokeWidth="2" strokeLinecap="round">
+          <div className="home-stat-icon" style={{ background: warn.length > 0 ? '#FFF3E0' : '#EBF3FF' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={warn.length > 0 ? '#E65100' : '#1E3A5F'} strokeWidth="2" strokeLinecap="round">
               <circle cx="12" cy="12" r="10"/>
               <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
           </div>
-          <div className="home-stat-n" style={{ color: warn.length > 0 ? '#E65100' : '#2E7D32' }}>{warn.length}</div>
+          <div className="home-stat-n" style={{ color: warn.length > 0 ? '#E65100' : '#1E3A5F' }}>{warn.length}</div>
           <div className="home-stat-l">Avisos</div>
           <div className="home-stat-s">atenção</div>
         </div>

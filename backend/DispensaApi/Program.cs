@@ -106,15 +106,23 @@ builder.Services.AddRateLimiter(o =>
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         opt.QueueLimit = 0;
     });
+    o.AddFixedWindowLimiter("login", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(5);
+        opt.PermitLimit = 15;
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 0;
+    });
     o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
+var frontendUrl = builder.Configuration["FrontendUrl"]
+    ?? Environment.GetEnvironmentVariable("FRONTEND_URL")
+    ?? "http://localhost:5173";
 builder.Services.AddCors(o => o.AddPolicy("AllowFrontend", p =>
-    p.WithOrigins(
-        builder.Configuration["FrontendUrl"] ?? "http://localhost:5173",
-        "capacitor://localhost", "https://localhost")
-     .AllowAnyHeader()
-     .AllowAnyMethod()));
+    p.WithOrigins(frontendUrl, "capacitor://localhost", "https://localhost")
+     .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+     .WithHeaders("Authorization", "Content-Type", "Accept")));
 
 var app = builder.Build();
 

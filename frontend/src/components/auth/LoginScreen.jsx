@@ -122,7 +122,9 @@ export default function LoginScreen() {
   return (
     <div className="auth-screen">
       <div className="auth-hero">
-        <div className="auth-logo">🏡</div>
+        <div className="auth-logo">
+          <img src="/assets/icon.png" alt="Tem em Casa" style={{ width: 80, height: 80, borderRadius: 20, objectFit: 'cover' }} />
+        </div>
         <div className="auth-title">Tem em Casa</div>
         <div className="auth-subtitle">Controle de estoque para toda a família</div>
         <div className="auth-brand">por Querência Labs</div>
@@ -147,7 +149,7 @@ export default function LoginScreen() {
               <div className="auth-card-sub">Crie sua conta e configure o grupo familiar.</div>
               <button
                 className="btn-primary"
-                style={{ background: 'linear-gradient(135deg,#34D399,#059669)' }}
+                style={{ background: 'linear-gradient(135deg,#2D5FA3,#1E3A5F)' }}
                 onClick={() => { setError(''); setStep('register'); }}
               >
                 Criar conta →
@@ -243,7 +245,7 @@ export default function LoginScreen() {
               <div className="auth-card-sub">Crie um grupo e convide sua família.</div>
               <button
                 className="btn-primary"
-                style={{ background: 'linear-gradient(135deg,#34D399,#059669)' }}
+                style={{ background: 'linear-gradient(135deg,#2D5FA3,#1E3A5F)' }}
                 onClick={() => { setError(''); setStep('create-family'); }}
               >
                 Criar grupo →
