@@ -12,32 +12,40 @@ var builder = WebApplication.CreateBuilder(args);
 
 string connStr;
 
-// Railway injeta PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD individualmente
-var pgHost = Environment.GetEnvironmentVariable("PGHOST");
-var pgPort = Environment.GetEnvironmentVariable("PGPORT") ?? "5432";
-var pgDb   = Environment.GetEnvironmentVariable("PGDATABASE");
-var pgUser = Environment.GetEnvironmentVariable("PGUSER");
-var pgPass = Environment.GetEnvironmentVariable("PGPASSWORD");
-
-if (pgHost != null && pgDb != null && pgUser != null && pgPass != null)
+static string ParsePostgresUrl(string rawUrl)
 {
-    connStr = $"Host={pgHost};Port={pgPort};Database={pgDb};Username={pgUser};Password={pgPass};SSL Mode=Require;Trust Server Certificate=true";
+    var uri      = new Uri(rawUrl);
+    var userInfo = uri.UserInfo.Split(':');
+    return $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={Uri.UnescapeDataString(userInfo[1])};SSL Mode=Require;Trust Server Certificate=true";
+}
+
+// DATABASE_URL takes priority (Neon, Supabase, etc.)
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (databaseUrl != null)
+{
+    connStr = (databaseUrl.StartsWith("postgresql://") || databaseUrl.StartsWith("postgres://"))
+        ? ParsePostgresUrl(databaseUrl)
+        : databaseUrl;
 }
 else
 {
-    // Fallback: DATABASE_URL ou appsettings
-    var rawUrl = Environment.GetEnvironmentVariable("DATABASE_URL")
-        ?? builder.Configuration.GetConnectionString("Default")!;
+    // Railway individual PG vars
+    var pgHost = Environment.GetEnvironmentVariable("PGHOST");
+    var pgPort = Environment.GetEnvironmentVariable("PGPORT") ?? "5432";
+    var pgDb   = Environment.GetEnvironmentVariable("PGDATABASE");
+    var pgUser = Environment.GetEnvironmentVariable("PGUSER");
+    var pgPass = Environment.GetEnvironmentVariable("PGPASSWORD");
 
-    if (rawUrl.StartsWith("postgresql://") || rawUrl.StartsWith("postgres://"))
+    if (pgHost != null && pgDb != null && pgUser != null && pgPass != null)
     {
-        var uri      = new Uri(rawUrl);
-        var userInfo = uri.UserInfo.Split(':');
-        connStr = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={Uri.UnescapeDataString(userInfo[1])};SSL Mode=Require;Trust Server Certificate=true";
+        connStr = $"Host={pgHost};Port={pgPort};Database={pgDb};Username={pgUser};Password={pgPass};SSL Mode=Require;Trust Server Certificate=true";
     }
     else
     {
-        connStr = rawUrl;
+        var rawUrl = builder.Configuration.GetConnectionString("Default")!;
+        connStr = (rawUrl.StartsWith("postgresql://") || rawUrl.StartsWith("postgres://"))
+            ? ParsePostgresUrl(rawUrl)
+            : rawUrl;
     }
 }
 

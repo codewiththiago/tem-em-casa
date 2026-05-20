@@ -27,7 +27,18 @@ export default function LoginScreen() {
   const [inviteCode, setInviteCode] = useState('');
   const [joinPin, setJoinPin]       = useState('');
 
-  const goBack = () => { setStep('welcome'); setError(''); };
+  const goBack = () => {
+    setStep('welcome');
+    setError('');
+    setEmail('');
+    setPassword('');
+    setConfirmPass('');
+    setFamilyName('');
+    setMemberName('');
+    setPin('');
+    setInviteCode('');
+    setJoinPin('');
+  };
 
   // --- helpers ---
   const run = async (fn) => {
