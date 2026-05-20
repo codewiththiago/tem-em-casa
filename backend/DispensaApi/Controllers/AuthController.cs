@@ -19,7 +19,7 @@ public class AuthController(AppDbContext db, IFirebaseService firebase, IConfigu
     [HttpGet("health")]
     public IActionResult Health()
     {
-        return Ok(new { status = "ok", firebase = firebase.InitError == null });
+        return Ok(new { status = "ok", firebase = firebase.IsReady, initError = firebase.InitError });
     }
 
     [HttpPost("login")]

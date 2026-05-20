@@ -18,6 +18,7 @@ public class FirebaseService : IFirebaseService
     }
 
     public string? InitError => _initError;
+    public bool IsReady => _auth != null;
 
     private void TryInitialize()
     {
@@ -36,7 +37,11 @@ public class FirebaseService : IFirebaseService
                 ?? Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID")
                 ?? "";
 
-            if (string.IsNullOrWhiteSpace(projectId)) return;
+            if (string.IsNullOrWhiteSpace(projectId))
+            {
+                _initError = "FIREBASE_PROJECT_ID not set";
+                return;
+            }
 
             GoogleCredential credential;
             if (string.IsNullOrWhiteSpace(serviceAccountKey))
