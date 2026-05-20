@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { getAlerts } from '../../utils/alerts';
 
+const NAV_ITEMS = [
+  { id: 'home',   icon: '🏠', label: 'Início' },
+  { id: 'stock',  icon: '📦', label: 'Estoque' },
+  { id: 'lista',  icon: '🛒', label: 'Lista de compras' },
+  { id: 'stats',  icon: '📊', label: 'Estatísticas' },
+  { id: 'family', icon: '👨‍👩‍👧', label: 'Família' },
+];
+
 const CATEGORIES = [
   { id: 'Alimentos', icon: '🍎', bg: '#FFF3E0', color: '#E65100' },
   { id: 'Bebidas',   icon: '🥤', bg: '#E3F2FD', color: '#1565C0' },
@@ -16,8 +24,9 @@ const TIPS = [
   { icon: '🛒', title: 'Comprar',       desc: 'Lista de compras gerada automaticamente.' },
 ];
 
-export default function HomeScreen({ family, user, products, onEdit }) {
+export default function HomeScreen({ family, user, products, onEdit, onNavigate, onLogout }) {
   const [search, setSearch] = useState('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const all  = products.flatMap((p) => getAlerts(p).map((a) => ({ ...a, product: p })));
   const crit = all.filter((a) => a.sev === 'danger');
@@ -44,9 +53,45 @@ export default function HomeScreen({ family, user, products, onEdit }) {
 
   return (
     <div className="dp-screen">
+      {/* Drawer overlay */}
+      {drawerOpen && (
+        <div className="drawer-overlay" onClick={() => setDrawerOpen(false)}>
+          <div className="drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="drawer-profile">
+              <div className="drawer-avatar">{(user?.name || 'U').charAt(0).toUpperCase()}</div>
+              <div>
+                <div className="drawer-name">{user?.name}</div>
+                <div className="drawer-email">{user?.email}</div>
+              </div>
+            </div>
+            <div className="drawer-divider" />
+            <div className="drawer-family">
+              <span className="drawer-family-label">Grupo familiar</span>
+              <span className="drawer-family-name">{family?.name}</span>
+            </div>
+            <div className="drawer-divider" />
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.id}
+                className="drawer-item"
+                onClick={() => { onNavigate(item.id); setDrawerOpen(false); }}
+              >
+                <span className="drawer-item-icon">{item.icon}</span>
+                <span>{item.label}</span>
+              </button>
+            ))}
+            <div className="drawer-divider" />
+            <button className="drawer-logout" onClick={onLogout}>
+              <span>🚪</span>
+              <span>Sair da conta</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="home-header">
-        <button className="home-header-btn" aria-label="Menu">
+        <button className="home-header-btn" aria-label="Menu" onClick={() => setDrawerOpen(true)}>
           <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
             <path d="M1 1h16M1 7h16M1 13h16" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
           </svg>

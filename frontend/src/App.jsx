@@ -151,6 +151,8 @@ export default function App() {
           user={user}
           products={products}
           onEdit={handleEdit}
+          onNavigate={setScreen}
+          onLogout={handleLogout}
         />
       )}
       {screen === 'stock' && (
