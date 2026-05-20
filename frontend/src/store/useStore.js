@@ -8,6 +8,8 @@ export const useStore = create(
       user: null,
       jwt: null,
       familyGroupId: null,
+      authError: null,
+      deepLinkCode: null,
 
       // Family data
       family: null,
@@ -16,13 +18,16 @@ export const useStore = create(
 
       setAuth: (user, jwt, familyGroupId) => {
         localStorage.setItem('dispensa_jwt', jwt);
-        set({ user, jwt, familyGroupId });
+        set({ user, jwt, familyGroupId, authError: null });
       },
 
       clearAuth: () => {
         localStorage.removeItem('dispensa_jwt');
         set({ user: null, jwt: null, familyGroupId: null, family: null, products: [] });
       },
+
+      setAuthError: (msg) => set({ authError: msg }),
+      setDeepLinkCode: (code) => set({ deepLinkCode: code }),
 
       setFamily: (family) => set({ family }),
       setFamilyGroupId: (id) => set({ familyGroupId: id }),

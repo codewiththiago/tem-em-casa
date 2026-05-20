@@ -584,6 +584,28 @@ body {
   border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite;
 }
 
+/* ── Onboarding ── */
+.ob-screen {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100vh; padding: 32px 28px; background: var(--bg); position: relative;
+}
+.ob-skip {
+  position: absolute; top: 52px; right: 24px;
+  background: none; border: none; font-family: inherit;
+  font-size: 14px; font-weight: 600; color: #9CA3AF; cursor: pointer; padding: 4px 8px;
+}
+.ob-slides {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; max-width: 320px;
+}
+.ob-icon  { font-size: 80px; margin-bottom: 32px; animation: popIn .3s ease; }
+.ob-title { font-size: 24px; font-weight: 800; color: #1E3A5F; margin-bottom: 16px; font-family: Nunito, sans-serif; }
+.ob-text  { font-size: 15px; color: #6B7280; line-height: 1.6; font-weight: 500; }
+.ob-dots  { display: flex; gap: 8px; margin: 28px 0; }
+.ob-dot   { width: 8px; height: 8px; border-radius: 4px; background: #E5E7EB; transition: all .25s; }
+.ob-dot.on { width: 24px; background: #1E3A5F; }
+.ob-btn   { width: 100%; max-width: 320px; }
+
 /* ── Link button (Esqueci minha senha) ── */
 .btn-link {
   display: block; width: 100%; background: none; border: none;

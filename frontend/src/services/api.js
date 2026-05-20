@@ -37,6 +37,7 @@ api.interceptors.response.use(
         return api(err.config);
       } catch {
         localStorage.removeItem('dispensa_jwt');
+        useStore.getState().setAuthError('Sua sessão expirou. Faça login novamente.');
         useStore.getState().clearAuth();
       }
     }

@@ -8,15 +8,6 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
   },
   plugins: {
-    FirebaseAuthentication: {
-      skipNativeAuth: false,
-      providers: ['google.com'],
-    },
-    GoogleAuth: {
-      scopes: ['profile', 'email'],
-      serverClientId: '457700332490-qob2688jdjme3vkgv6og4urqailfapgi.apps.googleusercontent.com',
-      forceCodeForRefreshToken: true,
-    },
     FirebaseMessaging: {
       presentationOptions: ['badge', 'sound', 'alert'],
     },

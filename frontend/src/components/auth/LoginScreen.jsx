@@ -9,6 +9,10 @@ export default function LoginScreen() {
   const setFamilyGroupId = useStore((s) => s.setFamilyGroupId);
   const setProducts      = useStore((s) => s.setProducts);
   const clearAuth        = useStore((s) => s.clearAuth);
+  const authError        = useStore((s) => s.authError);
+  const setAuthError     = useStore((s) => s.setAuthError);
+  const deepLinkCode     = useStore((s) => s.deepLinkCode);
+  const setDeepLinkCode  = useStore((s) => s.setDeepLinkCode);
 
   // steps: welcome | login | register | reset | setup | create-family | join-family
   const [step, setStep]       = useState('welcome');
@@ -29,7 +33,7 @@ export default function LoginScreen() {
   const [joinPin, setJoinPin]       = useState('');
 
   const run = async (fn) => {
-    setLoading(true); setError('');
+    setLoading(true); setError(''); setAuthError(null);
     try { await fn(); }
     catch (e) {
       if (e.code === 'ERR_NETWORK' || e.message === 'Network Error') {
@@ -58,6 +62,9 @@ export default function LoginScreen() {
       ]);
       setFamily(group);
       setProducts(prods);
+    } else if (deepLinkCode) {
+      setInviteCode(deepLinkCode);
+      setStep('join-family');
     } else {
       setStep('setup');
     }
@@ -98,6 +105,9 @@ export default function LoginScreen() {
       ]);
       setFamily(group);
       setProducts(prods);
+    } else if (deepLinkCode) {
+      setInviteCode(deepLinkCode);
+      setStep('join-family');
     } else {
       setStep('setup');
     }
@@ -125,6 +135,7 @@ export default function LoginScreen() {
     setAuth({ id: s.user.id, name: s.user.name, email: s.user.email }, s.jwt, group.id);
     setFamily(group);
     setFamilyGroupId(group.id);
+    setDeepLinkCode(null);
   });
 
   return (
@@ -139,6 +150,11 @@ export default function LoginScreen() {
       </div>
 
       <div className="auth-body">
+        {authError && (
+          <div className="auth-error" style={{ background: '#FEF3C7', color: '#92400E', borderColor: '#FCD34D' }}>
+            ⏰ {authError}
+          </div>
+        )}
         {error && <div className="auth-error">{error}</div>}
 
         {/* ── Boas-vindas ── */}

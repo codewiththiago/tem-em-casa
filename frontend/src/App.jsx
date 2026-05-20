@@ -15,11 +15,12 @@ import FamilyScreen from './components/family/FamilyScreen';
 import StatisticsScreen from './components/stats/StatisticsScreen';
 import BottomNav from './components/shared/BottomNav';
 import ErrorBoundary from './components/shared/ErrorBoundary';
+import OnboardingScreen from './components/onboarding/OnboardingScreen';
 
 import './styles/global.css';
 
 export default function App() {
-  const { user, familyGroupId, family, products, setFamily, setProducts, upsertProduct, removeProduct, clearAuth, setSyncing, syncing } = useStore();
+  const { user, familyGroupId, family, products, setFamily, setProducts, upsertProduct, removeProduct, clearAuth, setSyncing, syncing, setDeepLinkCode } = useStore();
 
   const [screen, setScreen] = useState('home');
   const [showModal, setShowModal] = useState(false);
@@ -27,6 +28,9 @@ export default function App() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem('tem_em_casa_onboarding')
+  );
 
   // Pull-to-refresh state
   const ptrStartY = useRef(null);
@@ -80,6 +84,21 @@ export default function App() {
     window.addEventListener('online', up);
     window.addEventListener('offline', down);
     return () => { window.removeEventListener('online', up); window.removeEventListener('offline', down); };
+  }, []);
+
+  // Deep link handler
+  useEffect(() => {
+    let listener;
+    (async () => {
+      const { Capacitor } = await import('@capacitor/core');
+      if (!Capacitor.isNativePlatform()) return;
+      const { App: CapApp } = await import('@capacitor/app');
+      listener = await CapApp.addListener('appUrlOpen', ({ url }) => {
+        const match = url.match(/temencasa:\/\/join\/([A-Z0-9]{6})/i);
+        if (match) setDeepLinkCode(match[1].toUpperCase());
+      });
+    })();
+    return () => { listener?.remove(); };
   }, []);
 
   // Pull-to-refresh touch handlers
@@ -179,6 +198,17 @@ export default function App() {
     return (
       <ErrorBoundary>
         <LoginScreen />
+      </ErrorBoundary>
+    );
+  }
+
+  if (showOnboarding) {
+    return (
+      <ErrorBoundary>
+        <OnboardingScreen onDone={() => {
+          localStorage.setItem('tem_em_casa_onboarding', '1');
+          setShowOnboarding(false);
+        }} />
       </ErrorBoundary>
     );
   }

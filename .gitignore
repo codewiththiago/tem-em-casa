@@ -1,3 +1,12 @@
+# IDE
+.idea/
+*.iml
+.vs/
+*.user
+
+# Assets temporários
+AppIcons.zip
+
 # Credenciais — nunca commitar
 .env
 .env.*
