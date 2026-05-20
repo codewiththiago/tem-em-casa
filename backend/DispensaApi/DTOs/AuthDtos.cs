@@ -11,6 +11,11 @@ public class FcmTokenRequest
     public string FcmToken { get; set; } = "";
 }
 
+public class UpdateProfileRequest
+{
+    public string? Name { get; set; }
+}
+
 public record UserDto(Guid Id, string Name, string? Email);
 
 public record LoginResponse(string Token, UserDto User, Guid? FamilyGroupId);

@@ -53,6 +53,9 @@ export const loginWithFirebaseToken = (idToken, displayName = null) =>
 export const updateFcmToken = (fcmToken) =>
   api.post('/api/auth/fcm-token', { fcmToken });
 
+export const updateProfile = (name) =>
+  api.put('/api/auth/profile', { name }).then((r) => r.data);
+
 // Family
 export const createFamily = (name, pin) =>
   api.post('/api/family', { name, pin }).then((r) => r.data);

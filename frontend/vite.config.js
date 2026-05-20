@@ -6,6 +6,14 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'firebase': ['firebase/app', 'firebase/auth'],
+          'vendor': ['react', 'react-dom'],
+        },
+      },
+    },
   },
   server: {
     port: 5173,

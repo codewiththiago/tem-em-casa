@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useStore } from './store/useStore';
 import { getFamily, getProducts, createProduct, updateProduct, deleteProduct } from './services/api';
 import { initNotifications } from './services/notifications';
@@ -14,6 +14,7 @@ import ListaScreen from './components/shopping/ListaScreen';
 import FamilyScreen from './components/family/FamilyScreen';
 import StatisticsScreen from './components/stats/StatisticsScreen';
 import BottomNav from './components/shared/BottomNav';
+import ErrorBoundary from './components/shared/ErrorBoundary';
 
 import './styles/global.css';
 
@@ -25,6 +26,11 @@ export default function App() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const [online, setOnline] = useState(navigator.onLine);
+
+  // Pull-to-refresh state
+  const ptrStartY = useRef(null);
+  const [ptrActive, setPtrActive] = useState(false);
 
   // Initial load
   useEffect(() => {
@@ -65,6 +71,38 @@ export default function App() {
     const interval = setInterval(sync, 60000);
     document.addEventListener('visibilitychange', sync);
     return () => { clearInterval(interval); document.removeEventListener('visibilitychange', sync); };
+  }, [familyGroupId]);
+
+  // Online/offline detection
+  useEffect(() => {
+    const up   = () => setOnline(true);
+    const down = () => setOnline(false);
+    window.addEventListener('online', up);
+    window.addEventListener('offline', down);
+    return () => { window.removeEventListener('online', up); window.removeEventListener('offline', down); };
+  }, []);
+
+  // Pull-to-refresh touch handlers
+  const handleTouchStart = useCallback((e) => {
+    if (window.scrollY === 0) ptrStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleTouchEnd = useCallback(async (e) => {
+    if (ptrStartY.current === null) return;
+    const dy = e.changedTouches[0].clientY - ptrStartY.current;
+    ptrStartY.current = null;
+    if (dy > 70 && familyGroupId) {
+      setPtrActive(true);
+      try {
+        const [{ group }, prods] = await Promise.all([
+          getFamily(familyGroupId),
+          getProducts(familyGroupId),
+        ]);
+        setFamily(group);
+        setProducts(prods);
+      } catch { }
+      setTimeout(() => setPtrActive(false), 600);
+    }
   }, [familyGroupId]);
 
   const handleSync = useCallback(async () => {
@@ -138,10 +176,25 @@ export default function App() {
   }
 
   if (!user || !familyGroupId || !family) {
-    return <LoginScreen />;
+    return (
+      <ErrorBoundary>
+        <LoginScreen />
+      </ErrorBoundary>
+    );
   }
 
   return (
+    <ErrorBoundary>
+    <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      {!online && (
+        <div className="dp-offline-banner">📵 Sem conexão — algumas funções podem não funcionar</div>
+      )}
+      {ptrActive && (
+        <div className="dp-ptr-indicator">
+          <div className="dp-ptr-spin" />
+          Atualizando...
+        </div>
+      )}
     <>
       {screen === 'home' && (
         <HomeScreen
@@ -217,5 +270,7 @@ export default function App() {
         </div>
       )}
     </>
+    </div>
+    </ErrorBoundary>
   );
 }

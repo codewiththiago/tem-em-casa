@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { updateFamilySettings, getFamilyActivity, leaveFamily } from '../../services/api';
+import { updateFamilySettings, getFamilyActivity, leaveFamily, updateProfile } from '../../services/api';
 import { openWhatsApp, copyText, buildInviteMsg } from '../../utils/whatsapp';
+import { useStore } from '../../store/useStore';
 
 const fmtDate = (s) => (s ? new Date(s).toLocaleDateString('pt-BR') : '—');
 const fmtTime = (s) =>
@@ -23,10 +24,16 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
   });
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [leaveConfirm, setLeaveConfirm] = useState(false);
   const [leaveError, setLeaveError] = useState('');
   const [copiedInvite, setCopiedInvite] = useState(false);
   const [activity, setActivity] = useState([]);
   const [tab, setTab] = useState('members'); // members | activity
+  const [editName, setEditName] = useState(user?.name || '');
+  const [nameSaved, setNameSaved] = useState(false);
+  const [nameError, setNameError] = useState('');
+  const setAuth = useStore((s) => s.setAuth);
+  const familyGroupId = useStore((s) => s.familyGroupId);
 
   useEffect(() => {
     if (tab === 'activity' && activity.length === 0) {
@@ -51,18 +58,34 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
   };
 
   const handleLeave = async () => {
-    if (!window.confirm('Sair do grupo? Você precisará do código para entrar novamente.')) return;
     try {
       await leaveFamily(family.id);
       onLogout();
     } catch {
       setLeaveError('Erro ao sair do grupo. Tente novamente.');
+    } finally {
+      setLeaveConfirm(false);
+    }
+  };
+
+  const handleSaveName = async () => {
+    if (!editName.trim()) { setNameError('Nome não pode ser vazio.'); return; }
+    try {
+      const { user: updated } = await updateProfile(editName.trim());
+      const currentJwt = localStorage.getItem('dispensa_jwt');
+      setAuth({ id: updated.id, name: updated.name, email: updated.email }, currentJwt, familyGroupId);
+      setNameSaved(true);
+      setNameError('');
+      setTimeout(() => setNameSaved(false), 2500);
+    } catch {
+      setNameError('Erro ao salvar nome. Tente novamente.');
     }
   };
 
   const inviteMsg = buildInviteMsg(family.inviteCode, family.name);
 
   return (
+    <>
     <div className="dp-screen">
       <div className="dp-hdr">
         <h1>👨‍👩‍👧 Família</h1>
@@ -151,6 +174,28 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
       {tab === 'settings' && (
         <div className="dp-settings">
           <div className="dp-sg">
+            <div className="dp-sg-label">Meu perfil</div>
+            <div className="dp-sr">
+              <span className="dp-sr-icon">👤</span>
+              <div className="dp-sr-info" style={{ flex: 1 }}>
+                <div className="dp-sr-label">Seu nome</div>
+                <input
+                  className="dp-sr-input" value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Seu nome"
+                />
+              </div>
+            </div>
+            <div style={{ padding: '0 16px 14px' }}>
+              <button className="btn-primary" style={{ marginTop: 0 }} onClick={handleSaveName}>
+                Salvar nome
+              </button>
+              {nameSaved && <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#1E3A5F', marginTop: 8 }}>✓ Nome atualizado!</div>}
+              {nameError && <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#DC2626', marginTop: 8 }}>{nameError}</div>}
+            </div>
+          </div>
+
+          <div className="dp-sg">
             <div className="dp-sg-label">WhatsApp</div>
             <div className="dp-sr">
               <span className="dp-sr-icon">💬</span>
@@ -203,13 +248,48 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
           {saved && <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#1E3A5F', marginTop: 10 }}>✓ Salvo!</div>}
           {saveError && <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#DC2626', marginTop: 10 }}>{saveError}</div>}
 
-          <div style={{ marginTop: 24, borderTop: '1px solid #F3F4F6', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="dp-sg" style={{ marginTop: 14 }}>
+            <div className="dp-sg-label">Sobre o app</div>
+            <div className="dp-sr" style={{ cursor: 'pointer' }}
+              onClick={() => window.open('https://querencialabs.com/privacidade', '_blank')}>
+              <span className="dp-sr-icon">🔒</span>
+              <div className="dp-sr-info">
+                <div className="dp-sr-label">Política de privacidade</div>
+                <div className="dp-sr-sub">Veja como tratamos seus dados</div>
+              </div>
+              <span style={{ color: '#aaa', fontSize: 18 }}>›</span>
+            </div>
+            <div className="dp-sr">
+              <span className="dp-sr-icon">ℹ️</span>
+              <div className="dp-sr-info">
+                <div className="dp-sr-label">Versão</div>
+                <div className="dp-sr-sub">Tem em Casa 1.0.0 · por Querência Labs</div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 8, borderTop: '1px solid #F3F4F6', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <button className="dp-logout-btn" style={{ background: '#F9FAFB', color: '#6B7280', borderColor: '#E5E7EB' }} onClick={onLogout}>← Sair da conta</button>
-            <button className="dp-logout-btn" onClick={handleLeave}>🚪 Sair do grupo</button>
+            <button className="dp-logout-btn" onClick={() => setLeaveConfirm(true)}>🚪 Sair do grupo</button>
             {leaveError && <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#DC2626' }}>{leaveError}</div>}
           </div>
         </div>
       )}
     </div>
+
+    {leaveConfirm && (
+      <div className="dp-overlay center" onClick={() => setLeaveConfirm(false)}>
+        <div className="dp-confirm" onClick={(e) => e.stopPropagation()}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>🚪</div>
+          <h3>Sair do grupo?</h3>
+          <p>Você precisará do código de convite para entrar novamente.</p>
+          <div className="dp-btn-row">
+            <button className="dp-btn-s" onClick={() => setLeaveConfirm(false)}>Cancelar</button>
+            <button className="dp-btn-d" onClick={handleLeave}>Sair</button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
   );
 }

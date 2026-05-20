@@ -67,6 +67,24 @@ public class AuthController(AppDbContext db, IFirebaseService firebase, IConfigu
     }
 
     [Authorize]
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest req)
+    {
+        if (req.Name?.Trim() is not { Length: > 0 } name)
+            return BadRequest(new { message = "Nome inválido." });
+
+        var userId = GetUserId();
+        var user = await db.Users.FindAsync(userId);
+        if (user == null) return NotFound();
+
+        user.Name = name;
+        user.LastSeenAt = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+
+        return Ok(new { user = new UserDto(user.Id, user.Name, user.Email) });
+    }
+
+    [Authorize]
     [HttpPost("fcm-token")]
     public async Task<IActionResult> UpdateFcmToken([FromBody] FcmTokenRequest req)
     {

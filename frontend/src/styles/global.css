@@ -583,3 +583,31 @@ body {
   width: 48px; height: 48px; border: 4px solid var(--card);
   border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite;
 }
+
+/* ── Link button (Esqueci minha senha) ── */
+.btn-link {
+  display: block; width: 100%; background: none; border: none;
+  color: var(--primary-light); font-family: inherit; font-size: 13px; font-weight: 600;
+  text-align: center; padding: 8px 0 4px; cursor: pointer; text-decoration: underline;
+}
+
+/* ── Offline banner ── */
+.dp-offline-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+  background: #374151; color: white; text-align: center;
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  padding: 10px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  animation: slideDown .2s ease;
+}
+@keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+
+/* ── Pull-to-refresh indicator ── */
+.dp-ptr-indicator {
+  display: flex; align-items: center; justify-content: center;
+  height: 48px; color: #aaa; font-size: 13px; font-weight: 600; gap: 8px;
+  overflow: hidden; transition: height .2s;
+}
+.dp-ptr-indicator .dp-ptr-spin {
+  width: 18px; height: 18px; border: 2px solid #ddd; border-top-color: var(--primary);
+  border-radius: 50%; animation: spin .6s linear infinite;
+}

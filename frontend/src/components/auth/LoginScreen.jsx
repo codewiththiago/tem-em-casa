@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { signInWithEmail, registerWithEmail, firebaseErrorMsg } from '../../services/firebase';
+import { signInWithEmail, registerWithEmail, firebaseErrorMsg, sendPasswordReset } from '../../services/firebase';
 import { loginWithFirebaseToken, createFamily, joinFamily, getFamily, getProducts } from '../../services/api';
 import { useStore } from '../../store/useStore';
 
@@ -10,8 +10,9 @@ export default function LoginScreen() {
   const setProducts      = useStore((s) => s.setProducts);
   const clearAuth        = useStore((s) => s.clearAuth);
 
-  // steps: welcome | login | register | setup | create-family | join-family
+  // steps: welcome | login | register | reset | setup | create-family | join-family
   const [step, setStep]       = useState('welcome');
+  const [resetSent, setResetSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
 
@@ -60,6 +61,13 @@ export default function LoginScreen() {
     } else {
       setStep('setup');
     }
+  });
+
+  // ── Recuperar senha ───────────────────────────────────────────────────────
+  const doResetPassword = () => run(async () => {
+    if (!email.trim()) { setError('Informe o e-mail.'); return; }
+    await sendPasswordReset(email.trim());
+    setResetSent(true);
   });
 
   // ── Etapa 1-B: Criar conta nova ───────────────────────────────────────────
@@ -181,9 +189,54 @@ export default function LoginScreen() {
             <button className="btn-primary" onClick={doLogin} disabled={loading}>
               {loading ? 'Entrando...' : 'Entrar →'}
             </button>
+            <button
+              className="btn-link"
+              onClick={() => { setError(''); setResetSent(false); setStep('reset'); }}
+            >
+              Esqueci minha senha
+            </button>
             <button className="btn-secondary" onClick={() => { setError(''); setEmail(''); setPassword(''); setStep('welcome'); }}>
               Voltar
             </button>
+          </div>
+        )}
+
+        {/* ── Recuperar senha ── */}
+        {step === 'reset' && (
+          <div className="auth-card">
+            <div className="auth-card-title">🔑 Recuperar senha</div>
+            {resetSent ? (
+              <>
+                <div style={{ textAlign: 'center', fontSize: 40, margin: '12px 0' }}>📬</div>
+                <div className="auth-card-sub" style={{ textAlign: 'center', color: '#1E3A5F', fontWeight: 700 }}>
+                  E-mail enviado!
+                </div>
+                <div className="auth-card-sub" style={{ textAlign: 'center' }}>
+                  Verifique sua caixa de entrada e siga as instruções para redefinir a senha.
+                </div>
+                <button className="btn-primary" onClick={() => { setResetSent(false); setStep('login'); }}>
+                  Voltar ao login →
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="auth-card-sub">Informe seu e-mail e enviaremos um link para redefinir a senha.</div>
+                <div className="auth-field">
+                  <label>E-mail</label>
+                  <input
+                    type="email" value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="seu@email.com"
+                  />
+                </div>
+                <button className="btn-primary" onClick={doResetPassword} disabled={loading}>
+                  {loading ? 'Enviando...' : 'Enviar link →'}
+                </button>
+                <button className="btn-secondary" onClick={() => { setError(''); setStep('login'); }}>
+                  Voltar
+                </button>
+              </>
+            )}
           </div>
         )}
 

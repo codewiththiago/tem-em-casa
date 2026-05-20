@@ -4,6 +4,7 @@ import {
   browserPopupRedirectResolver,
   GoogleAuthProvider, signInWithPopup, signOut,
   signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
 
@@ -131,4 +132,8 @@ export async function registerWithEmail(email, password) {
   const result = await createUserWithEmailAndPassword(auth, email, password);
   const idToken = await result.user.getIdToken();
   return { idToken, user: result.user };
+}
+
+export async function sendPasswordReset(email) {
+  await sendPasswordResetEmail(auth, email);
 }
