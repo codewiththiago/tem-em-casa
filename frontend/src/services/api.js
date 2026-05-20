@@ -48,8 +48,8 @@ api.interceptors.response.use(
 export default api;
 
 // Auth
-export const loginWithFirebaseToken = (idToken) =>
-  api.post('/api/auth/login', { idToken }).then((r) => r.data);
+export const loginWithFirebaseToken = (idToken, displayName = null) =>
+  api.post('/api/auth/login', { idToken, displayName }).then((r) => r.data);
 
 export const updateFcmToken = (fcmToken) =>
   api.post('/api/auth/fcm-token', { fcmToken });

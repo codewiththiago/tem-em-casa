@@ -35,13 +35,19 @@ public class AuthController(AppDbContext db, IFirebaseService firebase, IConfigu
             if (user == null)
             {
                 var rawEmail = decoded.Claims.TryGetValue("email", out var e) ? e.ToString() : null;
+                var resolvedName = req.DisplayName?.Trim() is { Length: > 0 } dn ? dn
+                    : decoded.Claims.TryGetValue("name", out var n) ? n.ToString()! : "Usuário";
                 user = new User
                 {
                     FirebaseUid = decoded.Uid,
-                    Name = decoded.Claims.TryGetValue("name", out var n) ? n.ToString()! : "Usuário",
+                    Name = resolvedName,
                     Email = string.IsNullOrEmpty(rawEmail) ? null : rawEmail,
                 };
                 db.Users.Add(user);
+            }
+            else if (req.DisplayName?.Trim() is { Length: > 0 } newName && user.Name == "Usuário")
+            {
+                user.Name = newName;
             }
             user.LastSeenAt = DateTime.UtcNow;
             await db.SaveChangesAsync();

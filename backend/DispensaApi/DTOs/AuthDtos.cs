@@ -3,6 +3,7 @@ namespace DispensaApi.DTOs;
 public class LoginRequest
 {
     public string IdToken { get; set; } = "";
+    public string? DisplayName { get; set; }
 }
 
 public class FcmTokenRequest

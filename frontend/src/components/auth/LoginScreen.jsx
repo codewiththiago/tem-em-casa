@@ -80,8 +80,8 @@ export default function LoginScreen() {
       }
     }
 
-    const data = await loginWithFirebaseToken(idToken);
-    setAuth({ id: data.user.id, name: name.trim(), email: data.user.email }, data.token, null);
+    const data = await loginWithFirebaseToken(idToken, name.trim());
+    setAuth({ id: data.user.id, name: data.user.name, email: data.user.email }, data.token, null);
 
     if (data.familyGroupId) {
       const [{ group }, prods] = await Promise.all([
