@@ -123,7 +123,7 @@ export default function LoginScreen() {
     <div className="auth-screen">
       <div className="auth-hero">
         <div className="auth-logo">
-          <img src="/assets/icon.png" alt="Tem em Casa" style={{ width: 80, height: 80, borderRadius: 20, objectFit: 'cover' }} />
+          <img src="/icon.png" alt="Tem em Casa" style={{ width: 80, height: 80, borderRadius: 20, objectFit: 'cover' }} />
         </div>
         <div className="auth-title">Tem em Casa</div>
         <div className="auth-subtitle">Controle de estoque para toda a família</div>
