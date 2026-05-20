@@ -151,8 +151,12 @@ export default function App() {
       }
       setShowModal(false);
       setEditingProduct(null);
-    } catch {
-      showError('Erro ao salvar produto. Verifique sua conexão e tente novamente.');
+    } catch (e) {
+      if (e.response?.status === 409) {
+        showError('Este produto foi alterado por outro membro. Feche e recarregue para ver a versão mais recente.');
+      } else {
+        showError('Erro ao salvar produto. Verifique sua conexão e tente novamente.');
+      }
     }
   };
 

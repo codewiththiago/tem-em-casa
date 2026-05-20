@@ -14,7 +14,11 @@ public class NotificationService(ILogger<NotificationService> logger)
             Notification = new Notification { Title = title, Body = body },
             Android = new AndroidConfig
             {
-                Notification = new AndroidNotification { Sound = "default" }
+                Notification = new AndroidNotification
+                {
+                    Sound = "default",
+                    Icon = "ic_notification",
+                }
             },
         };
 

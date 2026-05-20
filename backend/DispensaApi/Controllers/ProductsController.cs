@@ -98,6 +98,10 @@ public class ProductsController(AppDbContext db) : ControllerBase
         var product = await db.Products.FirstOrDefaultAsync(p => p.Id == id && p.FamilyGroupId == familyId);
         if (product == null) return NotFound();
 
+        if (req.UpdatedAt.HasValue &&
+            Math.Abs((product.UpdatedAt - req.UpdatedAt.Value).TotalSeconds) > 2)
+            return Conflict(new { message = "Este produto foi alterado por outro membro. Recarregue e tente novamente." });
+
         product.Name = req.Name.Trim();
         product.Category = req.Category;
         product.Location = req.Location;

@@ -32,6 +32,8 @@ public class SaveProductRequest
 
     [MaxLength(500)]
     public string? Notes { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
 }
 
 public record ProductDto(

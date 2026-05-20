@@ -49,7 +49,7 @@ export default function ProductModal({ product, onSave, onClose }) {
     if (isNaN(qty) || isNaN(min) || isNaN(max)) { setError('Informe quantidades válidas.'); return; }
     if (min > max) { setError('A quantidade mínima não pode ser maior que a máxima.'); return; }
     setError('');
-    onSave({ ...form, quantity: qty, minQuantity: min, maxQuantity: max });
+    onSave({ ...form, quantity: qty, minQuantity: min, maxQuantity: max, updatedAt: product?.updatedAt });
   };
 
   return (
