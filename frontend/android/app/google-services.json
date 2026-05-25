@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "457700332490",
+    "project_id": "tem-em-casa-f23af",
+    "storage_bucket": "tem-em-casa-f23af.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:457700332490:android:388fdf03e80501932a7533",
+        "android_client_info": {
+          "package_name": "com.querencialabs.temencasa"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "457700332490-kc16d54nntjudlpiofito5a7j5gjl3k9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.querencialabs.temencasa",
+            "certificate_hash": "b6f450b125c99ef5f36aac3fe37c9ec679faa5da"
+          }
+        },
+        {
+          "client_id": "457700332490-qob2688jdjme3vkgv6og4urqailfapgi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYwBstcgY23KvplVmTCIZvV9ZkZay8E9M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "457700332490-qob2688jdjme3vkgv6og4urqailfapgi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -16,11 +16,15 @@ frontend/.env.*
 *.env.local
 serviceAccountKey.json
 google-services.json
+!frontend/android/app/google-services.json
 
 # Build outputs
 frontend/dist/
 frontend/node_modules/
-frontend/android/
+frontend/android/.gradle/
+frontend/android/app/build/
+frontend/android/build/
+frontend/android/local.properties
 backend/DispensaApi/bin/
 backend/DispensaApi/obj/
 

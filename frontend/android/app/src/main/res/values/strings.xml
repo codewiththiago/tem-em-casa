@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Tem em Casa</string>
+    <string name="title_activity_main">Tem em Casa</string>
+    <string name="package_name">com.querencialabs.temencasa</string>
+    <string name="custom_url_scheme">com.querencialabs.temencasa</string>
+</resources>
