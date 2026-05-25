@@ -12,6 +12,20 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      window.__errs = [];
+      window.onerror = function(msg, src, line, col, err) {
+        var s = (err && err.stack) ? err.stack : (msg + ' @ ' + src + ':' + line);
+        window.__errs.push(s);
+        document.body.innerHTML = '<div style="position:fixed;inset:0;background:#1a1a1a;color:#ff6b6b;font-family:monospace;padding:20px;overflow:auto;z-index:99999;font-size:13px"><h2 style="color:#ff4444;margin:0 0 12px">JS Error</h2><pre style="white-space:pre-wrap;word-break:break-all">' + s + '</pre></div>';
+      };
+      window.addEventListener('unhandledrejection', function(e) {
+        var r = e.reason;
+        var s = (r && r.stack) ? r.stack : (r && r.message) ? r.message : JSON.stringify(r);
+        window.__errs.push(s);
+        document.body.innerHTML = '<div style="position:fixed;inset:0;background:#1a1a1a;color:#ff6b6b;font-family:monospace;padding:20px;overflow:auto;z-index:99999;font-size:13px"><h2 style="color:#ff4444;margin:0 0 12px">Unhandled Rejection</h2><pre style="white-space:pre-wrap;word-break:break-all">' + s + '</pre></div>';
+      });
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
