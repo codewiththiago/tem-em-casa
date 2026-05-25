@@ -38,12 +38,22 @@ jobs:
         run: npm ci
         working-directory: frontend
 
+      - name: Create .env file
+        run: echo "${{ secrets.ENV_FILE }}" > frontend/.env
+
       - name: Build frontend
         run: npm run build
         working-directory: frontend
 
-      - name: Sync Capacitor
-        run: npx cap sync android
+      - name: Copy web assets to Android
+        run: |
+          mkdir -p frontend/android/app/src/main/assets/public
+          cp -r frontend/dist/. frontend/android/app/src/main/assets/public/
+          echo "Assets copied:"
+          ls frontend/android/app/src/main/assets/public/
+
+      - name: Sync Capacitor (plugins + config)
+        run: npx cap sync android --inline
         working-directory: frontend
 
       - name: Configure Android SDK path
