@@ -633,3 +633,33 @@ body {
   width: 18px; height: 18px; border: 2px solid #ddd; border-top-color: var(--primary);
   border-radius: 50%; animation: spin .6s linear infinite;
 }
+
+/* ── Bottom nav action sheet ── */
+.dp-action-sheet {
+  background: white; border-radius: 20px; padding: 8px 0;
+  width: calc(100vw - 48px); max-width: 360px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+}
+.dp-action-sheet-btn {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%; padding: 16px 20px;
+  background: none; border: none; cursor: pointer;
+  font-family: Nunito, sans-serif; font-size: 16px; font-weight: 700;
+  color: #1E3A5F; text-align: left;
+}
+.dp-action-sheet-btn:active { background: #F3F4F6; }
+.dp-action-sheet-divider { height: 1px; background: #F3F4F6; margin: 0; }
+.dp-action-sheet-cancel {
+  display: block; width: calc(100% - 32px); margin: 8px 16px 8px;
+  padding: 14px; background: #F3F4F6; border: none; border-radius: 14px;
+  font-family: Nunito, sans-serif; font-size: 15px; font-weight: 700;
+  color: #6B7280; cursor: pointer;
+}
+
+/* ── Home tip "ver mais" ── */
+.home-tip-more {
+  font-size: 11px; font-weight: 700; color: #1E3A5F;
+  margin-top: 6px; opacity: 0.7;
+}
+.home-tip-card:active { transform: scale(0.97); transition: transform .1s; }
+

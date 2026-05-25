@@ -18,6 +18,7 @@ export default function LoginScreen() {
   const [step, setStep]       = useState('welcome');
   const [resetSent, setResetSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(false);
   const [error, setError]     = useState('');
 
   // Campos de conta
@@ -120,9 +121,19 @@ export default function LoginScreen() {
 
     const { group } = await createFamily(familyName.trim(), pin);
     const s = useStore.getState();
-    setAuth({ id: s.user.id, name: s.user.name, email: s.user.email }, s.jwt, group.id);
-    setFamily(group);
-    setFamilyGroupId(group.id);
+    setLoadingData(true);
+    try {
+      const [, prods] = await Promise.all([
+        Promise.resolve(),
+        getProducts(group.id).catch(() => []),
+      ]);
+      setAuth({ id: s.user.id, name: s.user.name, email: s.user.email }, s.jwt, group.id);
+      setFamily(group);
+      setFamilyGroupId(group.id);
+      setProducts(prods);
+    } finally {
+      setLoadingData(false);
+    }
   });
 
   // ── Etapa 2-B: Entrar com código ─────────────────────────────────────────
@@ -132,11 +143,32 @@ export default function LoginScreen() {
 
     const { group } = await joinFamily(inviteCode.trim().toUpperCase(), joinPin);
     const s = useStore.getState();
-    setAuth({ id: s.user.id, name: s.user.name, email: s.user.email }, s.jwt, group.id);
-    setFamily(group);
-    setFamilyGroupId(group.id);
-    setDeepLinkCode(null);
+    setLoadingData(true);
+    try {
+      const [{ group: fullGroup }, prods] = await Promise.all([
+        getFamily(group.id),
+        getProducts(group.id),
+      ]);
+      setAuth({ id: s.user.id, name: s.user.name, email: s.user.email }, s.jwt, group.id);
+      setFamily(fullGroup);
+      setFamilyGroupId(group.id);
+      setProducts(prods);
+      setDeepLinkCode(null);
+    } finally {
+      setLoadingData(false);
+    }
   });
+
+  if (loadingData) {
+    return (
+      <div className="dp-loading">
+        <div className="dp-loading-spinner" />
+        <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#2A7A4F' }}>
+          Carregando seu estoque...
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-screen">

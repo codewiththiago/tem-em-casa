@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useStore } from './store/useStore';
 import { getFamily, getProducts, createProduct, updateProduct, deleteProduct } from './services/api';
+import { scanBarcode } from './components/stock/BarcodeScanner';
 import { initNotifications } from './services/notifications';
 import { buildShoppingList } from './utils/alerts';
 import { getAlerts } from './utils/alerts';
@@ -14,6 +15,7 @@ import ListaScreen from './components/shopping/ListaScreen';
 import FamilyScreen from './components/family/FamilyScreen';
 import StatisticsScreen from './components/stats/StatisticsScreen';
 import BottomNav from './components/shared/BottomNav';
+import AppDrawer from './components/shared/AppDrawer';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import OnboardingScreen from './components/onboarding/OnboardingScreen';
 
@@ -23,6 +25,8 @@ export default function App() {
   const { user, familyGroupId, family, products, setFamily, setProducts, upsertProduct, removeProduct, clearAuth, setSyncing, syncing, setDeepLinkCode } = useStore();
 
   const [screen, setScreen] = useState('home');
+  const [stockFilter, setStockFilter] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -142,7 +146,7 @@ export default function App() {
 
   const handleSaveProduct = async (formData) => {
     try {
-      if (editingProduct) {
+      if (editingProduct && !editingProduct._scanPrefill) {
         const updated = await updateProduct(familyGroupId, editingProduct.id, formData);
         upsertProduct(updated);
       } else {
@@ -174,8 +178,20 @@ export default function App() {
   const handleEdit = (p) => { setEditingProduct(p); setShowModal(true); };
   const handleAdd  = () => { setEditingProduct(null); setShowModal(true); };
 
+  const handleQuickScan = async () => {
+    try {
+      const result = await scanBarcode();
+      if (!result) return;
+      const barcodeMatch = products.find((p) => p.barcode && p.barcode === result.code);
+      if (barcodeMatch) { handleEdit(barcodeMatch); return; }
+      setEditingProduct(result.name || result.code ? { _scanPrefill: result } : null);
+      setShowModal(true);
+    } catch { }
+  };
+
   const handleFamilyUpdate = (group) => setFamily(group);
   const handleLogout = () => { signOutUser().catch(() => {}); clearAuth(); };
+  const handleOpenMenu = () => setDrawerOpen(true);
 
   const allAlerts = useMemo(
     () => products.flatMap((p) => getAlerts(p).map((a) => ({ ...a, product: p }))),
@@ -230,14 +246,22 @@ export default function App() {
         </div>
       )}
     <>
+      <AppDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        user={user}
+        family={family}
+        onNavigate={(s) => { setScreen(s); setStockFilter(null); }}
+        onLogout={handleLogout}
+      />
       {screen === 'home' && (
         <HomeScreen
           family={family}
           user={user}
           products={products}
           onEdit={handleEdit}
-          onNavigate={setScreen}
-          onLogout={handleLogout}
+          onNavigate={(s, filter) => { setScreen(s); setStockFilter(filter || null); }}
+          onOpenMenu={handleOpenMenu}
         />
       )}
       {screen === 'stock' && (
@@ -245,10 +269,12 @@ export default function App() {
           products={products}
           onEdit={handleEdit}
           onDelete={setDeleteConfirm}
+          onOpenMenu={handleOpenMenu}
+          initialFilter={stockFilter}
         />
       )}
       {screen === 'lista' && (
-        <ListaScreen family={family} products={products} />
+        <ListaScreen family={family} products={products} onOpenMenu={handleOpenMenu} />
       )}
       {screen === 'family' && (
         <FamilyScreen
@@ -256,25 +282,30 @@ export default function App() {
           user={user}
           onFamilyUpdate={handleFamilyUpdate}
           onLogout={handleLogout}
+          onOpenMenu={handleOpenMenu}
         />
       )}
       {screen === 'stats' && (
-        <StatisticsScreen products={products} />
+        <StatisticsScreen products={products} onOpenMenu={handleOpenMenu} />
       )}
 
       <BottomNav
         screen={screen}
-        setScreen={setScreen}
+        setScreen={(s) => { setScreen(s); setStockFilter(null); }}
         alertCount={allAlerts.length}
         shopCount={shopList.length}
         onAdd={handleAdd}
+        onScan={handleQuickScan}
       />
 
       {showModal && (
         <ProductModal
-          product={editingProduct}
+          product={editingProduct?._scanPrefill ? null : editingProduct}
+          prefill={editingProduct?._scanPrefill}
+          products={products}
           onSave={handleSaveProduct}
           onClose={() => { setShowModal(false); setEditingProduct(null); }}
+          onMatchExisting={(p) => { setShowModal(false); setEditingProduct(null); handleEdit(p); }}
         />
       )}
 

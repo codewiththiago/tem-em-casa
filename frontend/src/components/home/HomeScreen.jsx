@@ -1,14 +1,6 @@
 import { useState } from 'react';
 import { getAlerts } from '../../utils/alerts';
 
-const NAV_ITEMS = [
-  { id: 'home',   icon: '🏠', label: 'Início' },
-  { id: 'stock',  icon: '📦', label: 'Estoque' },
-  { id: 'lista',  icon: '🛒', label: 'Lista de compras' },
-  { id: 'stats',  icon: '📊', label: 'Estatísticas' },
-  { id: 'family', icon: '👨‍👩‍👧', label: 'Família' },
-];
-
 const CATEGORIES = [
   { id: 'Alimentos', icon: '🍎', bg: '#FFF3E0', color: '#E65100' },
   { id: 'Bebidas',   icon: '🥤', bg: '#E3F2FD', color: '#1565C0' },
@@ -18,15 +10,31 @@ const CATEGORIES = [
 ];
 
 const TIPS = [
-  { icon: '📷', title: 'Escanear',      desc: 'Toque no botão central para escanear código de barras.' },
-  { icon: '🔔', title: 'Alertas',       desc: 'Receba alertas quando o estoque estiver baixo.' },
-  { icon: '📊', title: 'Estatísticas',  desc: 'Veja gráficos e métricas do estoque.' },
-  { icon: '🛒', title: 'Comprar',       desc: 'Lista de compras gerada automaticamente.' },
+  {
+    icon: '📷', title: 'Escanear',
+    desc: 'Toque no botão central para escanear código de barras.',
+    detail: 'Toque no botão + no centro da tela. Escolha "Escanear código" e aponte a câmera para o código de barras ou QR code do produto. O app busca automaticamente o nome e categoria. Você também pode vincular ao item já existente no estoque.',
+  },
+  {
+    icon: '🔔', title: 'Alertas',
+    desc: 'Receba alertas quando o estoque estiver baixo.',
+    detail: 'O app envia notificações push diariamente às 8h quando algum produto estiver abaixo da quantidade mínima ou próximo do vencimento (7 dias). Configure os alertas em Família → Config.',
+  },
+  {
+    icon: '📊', title: 'Estatísticas',
+    desc: 'Veja gráficos e métricas do estoque.',
+    detail: 'A tela de Estatísticas mostra o total de itens, quantos estão críticos ou com avisos, a distribuição por categoria e um resumo dos alertas ativos (zerados, baixos, vencidos, vencendo).',
+  },
+  {
+    icon: '🛒', title: 'Comprar',
+    desc: 'Lista de compras gerada automaticamente.',
+    detail: 'A Lista de Compras é gerada automaticamente com tudo que está abaixo do mínimo. A quantidade sugerida é a diferença entre o máximo e o atual. Você pode marcar itens como "no carrinho", compartilhar pelo WhatsApp ou exportar em PDF.',
+  },
 ];
 
-export default function HomeScreen({ family, user, products, onEdit, onNavigate, onLogout }) {
+export default function HomeScreen({ family, user, products, onEdit, onNavigate, onOpenMenu }) {
   const [search, setSearch] = useState('');
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeTip, setActiveTip] = useState(null);
 
   const all  = products.flatMap((p) => getAlerts(p).map((a) => ({ ...a, product: p })));
   const crit = all.filter((a) => a.sev === 'danger');
@@ -53,45 +61,9 @@ export default function HomeScreen({ family, user, products, onEdit, onNavigate,
 
   return (
     <div className="dp-screen">
-      {/* Drawer overlay */}
-      {drawerOpen && (
-        <div className="drawer-overlay" onClick={() => setDrawerOpen(false)}>
-          <div className="drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="drawer-profile">
-              <div className="drawer-avatar">{(user?.name || 'U').charAt(0).toUpperCase()}</div>
-              <div>
-                <div className="drawer-name">{user?.name}</div>
-                <div className="drawer-email">{user?.email}</div>
-              </div>
-            </div>
-            <div className="drawer-divider" />
-            <div className="drawer-family">
-              <span className="drawer-family-label">Grupo familiar</span>
-              <span className="drawer-family-name">{family?.name}</span>
-            </div>
-            <div className="drawer-divider" />
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item.id}
-                className="drawer-item"
-                onClick={() => { onNavigate(item.id); setDrawerOpen(false); }}
-              >
-                <span className="drawer-item-icon">{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            ))}
-            <div className="drawer-divider" />
-            <button className="drawer-logout" onClick={onLogout}>
-              <span>🚪</span>
-              <span>Sair da conta</span>
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <div className="home-header">
-        <button className="home-header-btn" aria-label="Menu" onClick={() => setDrawerOpen(true)}>
+        <button className="home-header-btn" aria-label="Menu" onClick={onOpenMenu}>
           <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
             <path d="M1 1h16M1 7h16M1 13h16" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
           </svg>
@@ -161,7 +133,8 @@ export default function HomeScreen({ family, user, products, onEdit, onNavigate,
           <div className="home-stat-l">Itens</div>
           <div className="home-stat-s">no estoque</div>
         </div>
-        <div className="home-stat-card">
+        <div className="home-stat-card" onClick={() => crit.length > 0 && onNavigate('stock', { type: 'critical' })}
+          style={{ cursor: crit.length > 0 ? 'pointer' : 'default' }}>
           <div className="home-stat-icon" style={{ background: crit.length > 0 ? '#FEE2E2' : '#EBF3FF' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={crit.length > 0 ? '#C62828' : '#1E3A5F'} strokeWidth="2" strokeLinecap="round">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -189,7 +162,7 @@ export default function HomeScreen({ family, user, products, onEdit, onNavigate,
       {crit.length > 0 && (
         <div className="home-alert-banner">
           <span>🚨</span>
-          <span>{crit.length} item{crit.length > 1 ? 's' : ''} precisa{crit.length === 1 ? '' : 'm'} de atenção urgente</span>
+          <span>{crit.length} {crit.length === 1 ? 'item precisa' : 'itens precisam'} de atenção urgente</span>
         </div>
       )}
 
@@ -199,7 +172,8 @@ export default function HomeScreen({ family, user, products, onEdit, onNavigate,
       </div>
       <div className="home-categories">
         {CATEGORIES.map((cat) => (
-          <div key={cat.id} className="home-cat-chip">
+          <div key={cat.id} className="home-cat-chip" onClick={() => onNavigate('stock', { category: cat.id })}
+            style={{ cursor: 'pointer' }}>
             <div className="home-cat-icon" style={{ background: cat.bg }}>
               <span style={{ fontSize: 24 }}>{cat.icon}</span>
             </div>
@@ -214,7 +188,7 @@ export default function HomeScreen({ family, user, products, onEdit, onNavigate,
         <>
           <div className="home-section-hdr">
             <span>Próximos do Vencimento</span>
-            <span className="home-section-link">{expiring.length} item{expiring.length > 1 ? 's' : ''}</span>
+            <span className="home-section-link">{expiring.length} {expiring.length === 1 ? 'item' : 'itens'}</span>
           </div>
           <div style={{ padding: '0 20px' }}>
             {expiring.map((p) => (
@@ -237,13 +211,32 @@ export default function HomeScreen({ family, user, products, onEdit, onNavigate,
       <div className="home-tips-hdr">Como usar</div>
       <div className="home-tips">
         {TIPS.map((t) => (
-          <div key={t.title} className="home-tip-card">
+          <div key={t.title} className="home-tip-card" onClick={() => setActiveTip(t)} style={{ cursor: 'pointer' }}>
             <div className="home-tip-icon">{t.icon}</div>
             <div className="home-tip-title">{t.title}</div>
             <div className="home-tip-desc">{t.desc}</div>
+            <div className="home-tip-more">Ver mais →</div>
           </div>
         ))}
       </div>
+
+      {activeTip && (
+        <div className="dp-overlay center" onClick={() => setActiveTip(null)}>
+          <div className="dp-modal" style={{ maxWidth: 340 }} onClick={(e) => e.stopPropagation()}>
+            <div className="dp-modal-hdr">
+              <button className="dp-modal-hdr-action cancel" onClick={() => setActiveTip(null)}>Fechar</button>
+              <div className="dp-modal-hdr-title">{activeTip.icon} {activeTip.title}</div>
+              <div style={{ width: 60 }} />
+            </div>
+            <div className="dp-modal-body" style={{ padding: '20px 20px 28px' }}>
+              <div style={{ fontSize: 48, textAlign: 'center', marginBottom: 16 }}>{activeTip.icon}</div>
+              <p style={{ fontSize: 15, lineHeight: 1.6, color: '#374151', fontFamily: 'Nunito, sans-serif', fontWeight: 600, margin: 0 }}>
+                {activeTip.detail}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

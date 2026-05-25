@@ -25,7 +25,13 @@ function ShopItem({ item, chk, onToggle }) {
   );
 }
 
-export default function ListaScreen({ family, products }) {
+const HamburgerIcon = () => (
+  <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+    <path d="M1 1h16M1 7h16M1 13h16" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+export default function ListaScreen({ family, products, onOpenMenu }) {
   const list = useMemo(() => buildShoppingList(products), [products]);
   const [checked, setChecked] = useState({});
   const toggle = (id) => setChecked((p) => ({ ...p, [id]: !p[id] }));
@@ -67,6 +73,9 @@ export default function ListaScreen({ family, products }) {
   return (
     <div className="dp-screen">
       <div className="dp-hdr">
+        <button className="home-header-btn" aria-label="Menu" onClick={onOpenMenu} style={{ marginBottom: 4 }}>
+          <HamburgerIcon />
+        </button>
         <h1>🛒 Lista de Compras</h1>
         <p>{list.length === 0 ? 'Nada para comprar!' : `${list.length} ${list.length === 1 ? 'item' : 'itens'} na lista`}</p>
       </div>

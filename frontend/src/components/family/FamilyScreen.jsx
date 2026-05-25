@@ -16,7 +16,13 @@ const ACTION_LABEL = {
   join_group: 'entrou no grupo', create_group: 'criou o grupo',
 };
 
-export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout }) {
+const HamburgerIcon = () => (
+  <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+    <path d="M1 1h16M1 7h16M1 13h16" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout, onOpenMenu }) {
   const [settings, setSettings] = useState({
     whatsappPhone: family.whatsappPhone || '',
     notifyExpiring: family.notifyExpiring ?? true,
@@ -88,6 +94,9 @@ export default function FamilyScreen({ family, user, onFamilyUpdate, onLogout })
     <>
     <div className="dp-screen">
       <div className="dp-hdr">
+        <button className="home-header-btn" aria-label="Menu" onClick={onOpenMenu} style={{ marginBottom: 4 }}>
+          <HamburgerIcon />
+        </button>
         <h1>👨‍👩‍👧 Família</h1>
         <p>{family.name} · {(family.members || []).length} membro{(family.members || []).length !== 1 ? 's' : ''}</p>
       </div>

@@ -3,7 +3,13 @@ import { getAlerts } from '../../utils/alerts';
 const CATEGORIES = ['Alimentos', 'Bebidas', 'Limpeza', 'Higiene', 'Outros'];
 const CAT_COLORS  = { Alimentos: '#E65100', Bebidas: '#1E3A5F', Limpeza: '#2D5FA3', Higiene: '#C2185B', Outros: '#512DA8' };
 
-export default function StatisticsScreen({ products }) {
+const HamburgerIcon = () => (
+  <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+    <path d="M1 1h16M1 7h16M1 13h16" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+export default function StatisticsScreen({ products, onOpenMenu }) {
   const all  = products.flatMap((p) => getAlerts(p).map((a) => ({ ...a, product: p })));
   const crit = all.filter((a) => a.sev === 'danger');
   const warn = all.filter((a) => a.sev === 'warn');
@@ -25,6 +31,9 @@ export default function StatisticsScreen({ products }) {
   return (
     <div className="dp-screen">
       <div className="dp-hdr">
+        <button className="home-header-btn" aria-label="Menu" onClick={onOpenMenu} style={{ marginBottom: 4 }}>
+          <HamburgerIcon />
+        </button>
         <h1>📊 Estatísticas</h1>
         <p>{products.length} produto{products.length !== 1 ? 's' : ''} no estoque</p>
       </div>
