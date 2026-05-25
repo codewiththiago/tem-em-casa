@@ -49,6 +49,9 @@ jobs:
       - name: Configure Android SDK path
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > frontend/android/local.properties
 
+      - name: Grant execute permission to gradlew
+        run: chmod +x frontend/android/gradlew
+
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon
         working-directory: frontend/android
